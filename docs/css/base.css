@@ -1,0 +1,171 @@
+/* ==========================================================================
+   RECAMP — base: reset, typography, the annotation vocabulary
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-ui);
+  line-height: var(--lh-body);
+  letter-spacing: var(--track-tight);
+  overflow: hidden;              /* the shell scrolls its own panes */
+}
+
+h1, h2, h3, h4, p, ul, ol, figure, blockquote, dl, dd { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea {
+  font: inherit; color: inherit; letter-spacing: inherit;
+  background: none; border: 0; margin: 0; padding: 0;
+}
+button { cursor: pointer; text-align: inherit; }
+button:disabled { cursor: default; opacity: .5; }
+a { color: var(--celestial); text-decoration: none; }
+a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+img, svg, canvas { display: block; max-width: 100%; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+strong { font-weight: 600; }
+code, kbd, samp, pre { font-family: var(--font-mono); font-size: .92em; }
+::selection { background: var(--celestial-edge); }
+:focus { outline: none; }
+:focus-visible { box-shadow: var(--focus-ring); border-radius: var(--radius-control); }
+[hidden] { display: none !important; }
+
+/* Scrollbars — thin, graphite, quiet */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* --------------------------------------------------------------------------
+   Type roles
+   -------------------------------------------------------------------------- */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.015em;
+}
+.t-masthead {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-masthead);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+}
+.t-title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--fs-title);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+}
+.t-body { font-size: var(--fs-body); line-height: var(--lh-body); }
+.t-secondary { color: var(--text-secondary); }
+.t-faint { color: var(--text-faint); }
+.t-mono { font-family: var(--font-mono); }
+.t-num { font-variant-numeric: tabular-nums; }
+
+/* The technical label: mono, uppercase, tracked. It annotates; it never shouts. */
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+.label--ink { color: var(--text-secondary); }
+.label--accent { color: var(--celestial); }
+.label--live { color: var(--stellar); }
+
+/* Coordinate / catalogue mark — RECAMP / EVT-026 · 12.9716 N 77.5946 E */
+.coord {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--text-ghost);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.coord b { font-weight: 500; color: var(--text-faint); }
+.coord .sep { margin: 0 .5em; opacity: .55; }
+
+/* --------------------------------------------------------------------------
+   Rules — the hairline is the primary structural device
+   -------------------------------------------------------------------------- */
+
+.rule { border-top: 1px solid var(--line); }
+.rule--strong { border-top-color: var(--line-strong); }
+.rule--faint { border-top-color: var(--line-faint); }
+
+/* A rule with a label sitting on it, like an axis annotation */
+.rule-label {
+  display: flex; align-items: center; gap: var(--s3);
+  color: var(--text-faint);
+}
+.rule-label::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
+.rule-label > .label { flex: none; }
+
+/* Measurement ticks along a rule */
+.ticks {
+  height: 8px;
+  background-image:
+    linear-gradient(to right, var(--line-strong) 1px, transparent 1px),
+    linear-gradient(to right, var(--line) 1px, transparent 1px);
+  background-size: 80px 8px, 16px 4px;
+  background-repeat: repeat-x;
+  background-position: 0 0, 0 0;
+  border-top: 1px solid var(--line);
+}
+
+/* --------------------------------------------------------------------------
+   Plotting surface — a faint coordinate grid, for hero areas only
+   -------------------------------------------------------------------------- */
+
+.grid-surface {
+  background-image:
+    linear-gradient(var(--line-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-faint) 1px, transparent 1px);
+  background-size: 96px 96px;
+  background-position: center top;
+}
+
+/* --------------------------------------------------------------------------
+   Layout primitives
+   -------------------------------------------------------------------------- */
+
+.column { max-width: var(--column); margin: 0 auto; width: 100%; }
+.column--wide { max-width: var(--column-wide); }
+.stack > * + * { margin-top: var(--stack, var(--s4)); }
+.row { display: flex; align-items: center; gap: var(--s2); }
+.row--between { justify-content: space-between; }
+.row--start { align-items: flex-start; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Reveal — a single gentle opacity/translate, used on view mount only */
+@keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.reveal { animation: reveal var(--dur-slow) var(--ease) both; }
+.reveal[style*='--i'] { animation-delay: calc(var(--i) * 40ms); }
+@media (prefers-reduced-motion: reduce) { .reveal { animation: none; } }

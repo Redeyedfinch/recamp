@@ -1,0 +1,67 @@
+/* ==========================================================================
+   RECAMP — celestial layer
+   A plotting surface, not wallpaper. Star fields sit behind chosen areas at
+   low opacity; arcs are thin; marks are annotations in the corners.
+   ========================================================================== */
+
+.starfield { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: .85; }
+[data-theme='light'] .starfield { opacity: .55; }
+
+/* Corner marks — coordinate labels in the corners of a plotted area */
+.marks { position: absolute; inset: 0; pointer-events: none; }
+.mark { position: absolute; font-family: var(--font-mono); font-size: var(--fs-label); letter-spacing: .1em; color: var(--text-ghost); text-transform: uppercase; white-space: nowrap; }
+.mark--tl { top: 14px; left: 16px; } .mark--tr { top: 14px; right: 16px; text-align: right; }
+.mark--bl { bottom: 14px; left: 16px; } .mark--br { bottom: 14px; right: 16px; text-align: right; }
+.mark b { color: var(--text-faint); font-weight: 500; }
+
+/* Crosshair tick at a corner */
+.tick { position: absolute; width: 10px; height: 10px; pointer-events: none; }
+.tick::before, .tick::after { content: ''; position: absolute; background: var(--line-strong); }
+.tick::before { width: 10px; height: 1px; top: 0; left: 0; } .tick::after { width: 1px; height: 10px; top: 0; left: 0; }
+.tick--tl { top: 0; left: 0; }
+.tick--tr { top: 0; right: 0; transform: scaleX(-1); }
+.tick--bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.tick--br { bottom: 0; right: 0; transform: scale(-1); }
+
+/* Trajectory arc — an SVG stroke; the class colours it */
+.arc { display: block; overflow: visible; }
+.arc path, .arc circle, .arc line { vector-effect: non-scaling-stroke; }
+.arc__path { fill: none; stroke: var(--celestial-dim); stroke-width: 1; }
+.arc__path--dashed { stroke-dasharray: 2 5; opacity: .8; }
+.arc__node { fill: var(--bg-surface); stroke: var(--celestial); stroke-width: 1.2; }
+.arc__node--now { fill: var(--stellar); stroke: var(--stellar); }
+.arc__node--past { fill: var(--text-ghost); stroke: var(--text-ghost); }
+.arc__grid { stroke: var(--line-faint); stroke-width: 1; }
+.arc__label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .08em; fill: var(--text-ghost); text-transform: uppercase; }
+
+/* Generated cover plate — a catalogue plate for a page */
+.plate { position: relative; overflow: hidden; background: var(--bg-sunken); border-bottom: 1px solid var(--line); }
+.plate svg { width: 100%; height: 100%; display: block; }
+.plate__star { fill: var(--text-secondary); }
+.plate__arc { fill: none; stroke: var(--celestial-dim); stroke-width: .8; }
+.plate__grid { stroke: var(--line-faint); stroke-width: 1; }
+.plate__mark { font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; fill: var(--text-ghost); text-transform: uppercase; }
+.plate--cover { height: 168px; }
+.plate--thumb { height: 92px; border-bottom: 1px solid var(--line); }
+.plate--gallery { height: 110px; }
+
+/* Constellation navigation — five stations, a visual index not a menu */
+.constellation { position: relative; width: 100%; aspect-ratio: 5 / 3; }
+.constellation svg { width: 100%; height: 100%; overflow: visible; }
+.constellation__edge { stroke: var(--line-strong); stroke-width: 1; }
+.constellation__node { cursor: pointer; }
+.constellation__node circle { fill: var(--bg-surface); stroke: var(--celestial-dim); stroke-width: 1.2; transition: stroke var(--dur-fast) var(--ease), r var(--dur-fast) var(--ease); }
+.constellation__node:hover circle, .constellation__node:focus-visible circle { stroke: var(--celestial-hi); }
+.constellation__node text { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .12em; fill: var(--text-faint); text-transform: uppercase; pointer-events: none; }
+.constellation__node:hover text { fill: var(--text-primary); }
+.constellation__node .n { font-family: var(--font-mono); font-size: 9px; fill: var(--text-ghost); letter-spacing: .04em; }
+.constellation__node[data-live='true'] circle { stroke: var(--stellar); }
+.constellation__node:focus { outline: none; }
+
+/* Date box — the almanac tile used for events */
+.datebox { display: grid; grid-template-rows: auto auto auto; text-align: center; min-width: 64px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--bg-raised); }
+.datebox__day { font-family: var(--font-display); font-size: 2rem; line-height: .95; letter-spacing: -0.02em; color: var(--text-primary); }
+.datebox__mon { font-family: var(--font-mono); font-size: var(--fs-label); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--text-secondary); margin-top: 5px; }
+.datebox__year { font-family: var(--font-mono); font-size: var(--fs-label); color: var(--text-ghost); letter-spacing: .06em; margin-top: 1px; }
+.datebox--unknown .datebox__day { font-size: 1.3rem; color: var(--text-faint); padding: 6px 0; }
+.datebox--year .datebox__day { font-size: 1.5rem; }

@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.env
+# clasp keeps credentials in the home directory, never here
+.clasprc.json
+# local QA output
+qa/

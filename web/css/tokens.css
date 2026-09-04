@@ -1,0 +1,170 @@
+/* ==========================================================================
+   RECAMP OBSERVATORY — design tokens
+   --------------------------------------------------------------------------
+   Every colour, rule, radius and duration in this product resolves here.
+   Components reference tokens; components never contain raw hex.
+
+   The palette is graphite and starlight: a cold near-black ground, warm ivory
+   text, one restrained instrument blue, and amber reserved for things that are
+   actually happening right now. Violet exists, is desaturated, and is used
+   once — for the research area. It is not the identity.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- ground -------------------------------------------------------- */
+  --bg-deep:        #0b0d10;   /* the sky behind everything                */
+  --bg-surface:     #101317;   /* the working surface                      */
+  --bg-raised:      #151a1f;   /* rows, inputs, inset panels               */
+  --bg-overlay:     #1a2026;   /* menus, dialogs, palette                  */
+  --bg-sunken:      #08090b;   /* sidebar, wells                           */
+  --bg-hover:       #ffffff08;
+  --bg-active:      #ffffff0e;
+  --bg-selected:    #6fa6c614;
+
+  /* ---- ink ----------------------------------------------------------- */
+  --text-primary:   #e9e6e0;   /* warm ivory on cold graphite             */
+  --text-secondary: #a2a9b0;
+  --text-faint:     #6c757e;
+  --text-ghost:     #4a5259;
+  --text-inverse:   #0b0d10;
+
+  /* ---- rules --------------------------------------------------------- */
+  --line:           #1d2329;   /* hairline: the default separator          */
+  --line-strong:    #2a3239;   /* borders that must be seen                */
+  --line-faint:     #14181d;   /* grid, tick marks, plotting surface       */
+
+  /* ---- instrument blue ----------------------------------------------- */
+  --celestial:      #6fa6c6;
+  --celestial-hi:   #a3cde4;
+  --celestial-dim:  #48697e;
+  --celestial-tint: #6fa6c61f;
+  --celestial-edge: #6fa6c645;
+
+  /* ---- stellar amber — attention, live, now --------------------------- */
+  --stellar:        #d6a15c;
+  --stellar-hi:     #ebc58e;
+  --stellar-tint:   #d6a15c1c;
+  --stellar-edge:   #d6a15c40;
+
+  /* ---- supporting ----------------------------------------------------- */
+  --sage:           #86a17f;   /* completed, resolved, done               */
+  --sage-tint:      #86a17f1c;
+  --rust:           #c07a63;   /* overdue, destructive                    */
+  --rust-tint:      #c07a631c;
+  --violet:         #8279a0;   /* research only. one use. deliberate.     */
+  --violet-tint:    #8279a01c;
+
+  /* ---- type ----------------------------------------------------------- */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-sans:    'IBM Plex Sans', ui-sans-serif, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+
+  --fs-masthead:  clamp(3.4rem, 8.5vw, 6.5rem);
+  --fs-display:   clamp(2.1rem, 4.2vw, 3.1rem);
+  --fs-title:     1.75rem;
+  --fs-h1:        1.6rem;
+  --fs-h2:        1.28rem;
+  --fs-h3:        1.06rem;
+  --fs-body:      0.9375rem;  /* 15px — page content                      */
+  --fs-ui:        0.8438rem;  /* 13.5px — chrome                          */
+  --fs-small:     0.7813rem;  /* 12.5px                                   */
+  --fs-label:     0.6563rem;  /* 10.5px — mono technical labels           */
+
+  --lh-tight:     1.14;
+  --lh-snug:      1.35;
+  --lh-body:      1.65;
+
+  --track-label:  0.15em;     /* uppercase mono needs air                 */
+  --track-tight:  -0.011em;
+
+  /* ---- geometry -------------------------------------------------------- */
+  --radius-control: 3px;      /* buttons, inputs, tags                     */
+  --radius-surface: 6px;      /* dialogs, menus, cards worth containing    */
+  --radius-sharp:   0;        /* technical elements stay square            */
+  --radius-round:   50%;      /* avatars, status nodes, orbital markers    */
+
+  --space:          4px;
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s7: 32px; --s8: 40px; --s9: 56px; --s10: 80px;
+
+  --sidebar-w:      248px;
+  --column:         46rem;    /* the editorial measure for page content    */
+  --column-wide:    72rem;    /* databases, archive                        */
+  --topbar-h:       44px;
+
+  /* ---- depth — used sparingly, overlays only --------------------------- */
+  --shadow-menu:   0 1px 2px #00000059, 0 12px 32px -8px #00000073;
+  --shadow-dialog: 0 1px 2px #00000059, 0 32px 64px -16px #00000091;
+  --shadow-none:   none;
+
+  /* ---- motion ---------------------------------------------------------- */
+  --ease:       cubic-bezier(0.2, 0.6, 0.25, 1);
+  --ease-in:    cubic-bezier(0.5, 0, 0.9, 0.4);
+  --dur-fast:   110ms;
+  --dur:        190ms;
+  --dur-slow:   420ms;
+
+  /* ---- focus ------------------------------------------------------------ */
+  --focus-ring: 0 0 0 1px var(--bg-deep), 0 0 0 3px var(--celestial-edge);
+
+  /* ---- layers ----------------------------------------------------------- */
+  --z-base: 0; --z-sticky: 20; --z-drag: 40; --z-menu: 60;
+  --z-dialog: 80; --z-palette: 90; --z-toast: 100;
+}
+
+/* ==========================================================================
+   LIGHT — a laboratory notebook, not a white dashboard.
+   Warm paper ground, charcoal ink, graphite rules, the same instrument blue
+   darkened until it reads as pencil-and-ink rather than screen glow.
+   ========================================================================== */
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-deep:        #e9e4da;   /* the desk                                  */
+  --bg-surface:     #f5f2eb;   /* the sheet                                 */
+  --bg-raised:      #fbf9f4;
+  --bg-overlay:     #fdfcf8;
+  --bg-sunken:      #efebe2;
+  --bg-hover:       #1a1c1f0a;
+  --bg-active:      #1a1c1f12;
+  --bg-selected:    #2c6a8c14;
+
+  --text-primary:   #191c1f;
+  --text-secondary: #565e66;
+  --text-faint:     #838c94;
+  --text-ghost:     #a8afb5;
+  --text-inverse:   #f8f6f1;
+
+  --line:           #dcd5c8;
+  --line-strong:    #c1b8a6;
+  --line-faint:     #e6e0d4;
+
+  --celestial:      #2c6a8c;
+  --celestial-hi:   #1b4e6b;
+  --celestial-dim:  #7d9db0;
+  --celestial-tint: #2c6a8c14;
+  --celestial-edge: #2c6a8c40;
+
+  --stellar:        #8d5f1c;
+  --stellar-hi:     #6d4711;
+  --stellar-tint:   #8d5f1c16;
+  --stellar-edge:   #8d5f1c3d;
+
+  --sage:           #4f6b49;
+  --sage-tint:      #4f6b4916;
+  --rust:           #96442c;
+  --rust-tint:      #96442c16;
+  --violet:         #5b5278;
+  --violet-tint:    #5b527816;
+
+  --shadow-menu:   0 1px 2px #6b604a2e, 0 10px 28px -8px #6b604a3d;
+  --shadow-dialog: 0 1px 2px #6b604a2e, 0 28px 56px -16px #6b604a4d;
+  --focus-ring: 0 0 0 1px var(--bg-surface), 0 0 0 3px var(--celestial-edge);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+}
