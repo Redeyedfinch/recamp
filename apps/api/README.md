@@ -3,6 +3,16 @@
 An Apps Script web app that stores the workspace snapshot in a Google Sheet
 the forum owns. The UI lives on GitHub Pages and calls this over POST.
 
+**Current deployment** (project `1FQ7e47hqaIMq91JkUPfZ0VI1DcPOzhEjgtDSJRYjjmfD7_07gGfQl6e9`):
+
+```
+https://script.google.com/macros/s/AKfycby_1eOOY8-o2asQIVJsseln06-BQkyr1YNyoODKNp4rg28uqQ0ka5Q5j7BpffYZRFalUw/exec
+```
+
+It answers `ping` already. It refuses `load`/`save` until `setup()` has been
+run once in the editor (`clasp open-script`), which creates the data
+spreadsheet and prints the access token to paste into **Settings → Storage**.
+
 ## Deploy (once)
 
 ```powershell

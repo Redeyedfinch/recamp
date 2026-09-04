@@ -11,6 +11,8 @@ activity log, and an archive of what the forum has built.
 A student club project, run from a personal GitHub account. Not affiliated
 with any employer's systems or data.
 
+**Live:** https://redeyedfinch.github.io/recamp/ · **Source:** https://github.com/Redeyedfinch/recamp
+
 ---
 
 ## Run it
