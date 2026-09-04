@@ -40,11 +40,12 @@ deployment id keeps the `/exec` URL stable.
 
 - Without a token from `setup()` the API refuses every call except `ping`.
 - `rotateToken()` invalidates the old token; paste the new one into Settings.
-- The spreadsheet is a normal Google Sheet — share it with the committee
-  through Drive as you would any Foundation document. The token gates the API,
+- The spreadsheet is a normal Google Sheet in the owner's Drive — share it
+  with the committee like any other club document. The token gates the API,
   Drive sharing gates the data.
-- No personal data is written by the seed. Whatever members type in is stored
-  in the Sheet; treat it under the DPDP Act 2023 like any other member record.
+- The seed contains no personal data. Whatever members type in is stored in
+  the Sheet; member details are personal data under India's DPDP Act 2023, so
+  collect only what the forum actually needs.
 
 ## Merge semantics
 
