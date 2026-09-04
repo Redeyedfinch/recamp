@@ -44,6 +44,34 @@ notes/          ARCHITECTURE.md — the decisions and why
 docs/           generated GitHub Pages output
 ```
 
+## Working from another device
+
+The **code** travels through git. The **workspace content** does not — until a
+Sheet is connected it lives in `localStorage`, which is per-browser and
+per-device. Two devices on the same URL still hold two separate workspaces.
+
+```bash
+git clone https://github.com/Redeyedfinch/recamp.git
+cd recamp
+npm test            # no npm install — the project has zero dependencies
+npm run serve
+```
+
+To bring the content across, either:
+
+- **Connect the Sheet** (permanent, and how the committee should work) — run
+  `setup()` once in the Apps Script editor, then paste the `/exec` URL and
+  token into **Settings → Storage** on *every* device. Each one merges into the
+  same Sheet and pulls others' changes on focus and every 90 s.
+- **Move a file once** — **Settings → Data → Export JSON** on the old device,
+  **Import JSON** on the new one. The import merges rather than overwrites:
+  the newer version of each record wins.
+
+For `clasp push` from a new machine, run `clasp login` with the account that
+owns the script; the script id is already in `apps/api/.clasp.json`. Only the
+credentials (`~/.clasprc.json`) are machine-local, and they are never
+committed.
+
 ## How it stores things
 
 Local-first. The workspace lives in the browser until **Settings → Storage**
