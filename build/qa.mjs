@@ -8,6 +8,7 @@
  *   node build/qa.mjs --light    light theme
  *   node build/qa.mjs --mobile   420×900, mobile emulation
  *   node build/qa.mjs --only home,archive
+ *   node build/qa.mjs --url https://redeyedfinch.github.io/recamp/   (live site)
  */
 import http from 'node:http';
 import { readFile, stat, mkdir, writeFile } from 'node:fs/promises';
@@ -23,6 +24,7 @@ await mkdir(out, { recursive: true });
 const args = process.argv.slice(2);
 const light = args.includes('--light'), mobile = args.includes('--mobile');
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1].split(',') : null;
+const liveUrl = args.includes('--url') ? args[args.indexOf('--url') + 1].replace(/\/?$/, '/') : null;
 const [W, H] = mobile ? [420, 900] : [1440, 900];
 
 /* ---- static server ---- */
@@ -72,12 +74,12 @@ let failures = 0;
 for (const [name, hash] of routes) {
   errors.length = 0;
   const q = name === 'enter' ? '' : `?enter=1${light ? '&theme=light' : ''}`;
-  await cdp('Page.navigate', { url: `http://localhost:${port}/${q}${hash}` });
+  await cdp('Page.navigate', { url: `${liveUrl || `http://localhost:${port}/`}${q}${hash}` });
   const t0 = Date.now(); let ready = false;
   while (Date.now() - t0 < 15000) { try { ready = await evaluate(`!!document.querySelector('.view, .login') && document.fonts.status === 'loaded' && !!window.recamp`); } catch { ready = false; } if (ready) break; await sleep(100); }
   await sleep(name === 'home' || name === 'enter' ? 700 : 300);
   const { data } = await cdp('Page.captureScreenshot', { format: 'png' });
-  const file = path.join(out, `${light ? 'light-' : ''}${mobile ? 'm-' : ''}${name}.png`);
+  const file = path.join(out, `${liveUrl ? 'live-' : ''}${light ? 'light-' : ''}${mobile ? 'm-' : ''}${name}.png`);
   await writeFile(file, Buffer.from(data, 'base64'));
   const info = await evaluate(`({ title: document.title, view: !!document.querySelector('.view, .login'), h: document.querySelector('.content')?.scrollHeight || 0 })`).catch(() => ({}));
   const ok = ready && !errors.length;
