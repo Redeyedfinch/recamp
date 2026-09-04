@@ -66,10 +66,33 @@ export class Store extends Emitter {
     await this._flush(this.adapter);
     const r = await this._flush(cloud);
     this.emit('sync', { ok: r?.ok !== false, error: r?.error });
+    this._startPolling();
     return r;
   }
 
-  detachCloud() { this.cloud = null; this.emit('sync', { ok: true, detached: true }); }
+  detachCloud() { this.cloud = null; this._stopPolling(); this.emit('sync', { ok: true, detached: true }); }
+
+  /* Other devices' edits arrive on tab focus and every 90 s — merged, never clobbered. */
+  async pull() {
+    if (!this.cloud || this.saving || this._pulling) return;
+    this._pulling = true;
+    try {
+      const remote = await this.cloud.load();
+      if (remote) {
+        const merged = mergeSnapshots(this.snapshot(), remote);
+        const changed = Object.values(merged.nodes).some(n => (this.state.nodes[n.id]?.updatedAt || '') !== n.updatedAt) || Object.values(merged.blocks).some(b => (this.state.blocks[b.id]?.updatedAt || '') !== b.updatedAt);
+        if (changed && !document.querySelector?.('.blk__text:focus, .page__title:focus')) { this.hydrate(merged); this._persistLocal(); this.emit('sync', { ok: true, at: now(), pulled: true }); }
+      }
+    } catch (e) { this.emit('sync', { ok: false, error: String(e.message || e) }); }
+    finally { this._pulling = false; }
+  }
+  _startPolling() {
+    this._stopPolling();
+    this._poll = setInterval(() => { if (!document.hidden) this.pull(); }, 90000);
+    this._onVis = () => { if (!document.hidden) this.pull(); };
+    document.addEventListener('visibilitychange', this._onVis);
+  }
+  _stopPolling() { clearInterval(this._poll); this._poll = null; if (this._onVis) document.removeEventListener('visibilitychange', this._onVis); this._onVis = null; }
 
   async _flush(adapter) {
     if (!adapter || !this.state) return;
