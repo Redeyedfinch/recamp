@@ -61,7 +61,7 @@ export function mount(ctx, host) {
         h('button.btn', { type: 'button', onclick: () => { const blob = new Blob([JSON.stringify(store.snapshot(), null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `recamp-workspace-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); } }, icon('download'), 'Export JSON'),
         h('button.btn', { type: 'button', onclick: () => file.click() }, icon('upload'), 'Import JSON'), file,
         h('button.btn.btn--danger', { type: 'button', onclick: async () => { if (await confirm({ title: 'Reset this browser\'s copy?', message: 'Everything stored here is replaced with the original seed. A connected Sheet is not touched. Export first if in doubt.', confirmLabel: 'Reset', danger: true })) { await store.adapter.clear(); location.reload(); } } }, 'Reset to seed')),
-      h('p.t-faint', { style: { fontSize: 'var(--fs-small)' } }, 'Keep exports in the forum\'s shared Drive, not personal accounts.')));
+      h('p.t-faint', { style: { fontSize: 'var(--fs-small)' } }, 'Keep an export somewhere the next committee can find it at handover.')));
 
     /* about */
     const build = document.querySelector('meta[name="recamp-build"]')?.content || 'development';
