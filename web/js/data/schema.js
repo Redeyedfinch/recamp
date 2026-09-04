@@ -91,7 +91,7 @@ export const DATABASES = {
       P.files('attachments', 'Attachments'), P.rel('parent_event', 'Part of', 'db_events'),
     ],
     views: [
-      view('v_table', 'All events', 'table', { sorts: [{ prop: 'date', dir: 'desc' }] }),
+      view('v_table', 'All events', 'table', { sorts: [{ prop: 'date', dir: 'desc' }], hidden: ['description', 'registration', 'attachments', 'parent_event'] }),
       view('v_board', 'By status', 'board', { groupBy: 'status' }),
       view('v_cal', 'Calendar', 'calendar', { dateProp: 'date' }),
       view('v_timeline', 'Timeline', 'timeline', { dateProp: 'date' }),
@@ -107,7 +107,7 @@ export const DATABASES = {
       P.text('summary', 'Summary', { long: true }),
     ],
     views: [
-      view('v_table', 'All projects', 'table'),
+      view('v_table', 'All projects', 'table', { hidden: ['summary'] }),
       view('v_board', 'By status', 'board', { groupBy: 'status' }),
       view('v_timeline', 'Timeline', 'timeline', { dateProp: 'start', endProp: 'deadline' }),
     ],
@@ -133,7 +133,7 @@ export const DATABASES = {
       P.person('lead', 'Lead'), P.rel('members', 'Members', 'db_members', { many: true }),
       P.text('remit', 'Remit', { long: true }),
     ],
-    views: [view('v_table', 'All teams', 'table'), view('v_gallery', 'Gallery', 'gallery')],
+    views: [view('v_table', 'All teams', 'table', { hidden: ['remit'] }), view('v_gallery', 'Gallery', 'gallery')],
   },
   db_members: {
     title: 'Members', icon: 'user', catalogue: 'MBR',
@@ -143,7 +143,7 @@ export const DATABASES = {
       P.text('department', 'Department'), P.multi('skills', 'Skills', []), P.text('bio', 'Bio', { long: true }),
       P.date('joined', 'Joined'), P.url('profile_image', 'Profile Image'),
     ],
-    views: [view('v_gallery', 'Directory', 'gallery'), view('v_table', 'Table', 'table'), view('v_board', 'By team', 'board', { groupBy: 'role' })],
+    views: [view('v_gallery', 'Directory', 'gallery'), view('v_table', 'Table', 'table', { hidden: ['bio', 'profile_image'] }), view('v_board', 'By role', 'board', { groupBy: 'role' })],
   },
   db_resources: {
     title: 'Resources', icon: 'book', catalogue: 'RES',
@@ -152,7 +152,7 @@ export const DATABASES = {
       P.select('type', 'Type', RESOURCE_TYPE), P.url('url', 'URL'), P.text('source', 'Source'),
       P.multi('topics', 'Topics', []), P.person('added_by', 'Added by'), P.text('notes', 'Notes', { long: true }),
     ],
-    views: [view('v_table', 'All resources', 'table'), view('v_board', 'By type', 'board', { groupBy: 'type' })],
+    views: [view('v_table', 'All resources', 'table', { hidden: ['notes'] }), view('v_board', 'By type', 'board', { groupBy: 'type' })],
   },
   db_meetings: {
     title: 'Meeting Notes', icon: 'notes', catalogue: 'MTG',

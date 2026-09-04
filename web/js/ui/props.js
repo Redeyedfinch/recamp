@@ -13,8 +13,9 @@ const EMPTY = '—';
 
 export function propValue(ctx, node, prop, { editable = true, compact = false } = {}) {
   const { store } = ctx;
-  const value = node.props?.[prop.id];
-  const set = v => store.setProp(node.id, prop.id, v);
+  const isTitle = prop.id === '__title';
+  const value = isTitle ? node.title : node.props?.[prop.id];
+  const set = v => isTitle ? store.updateNode(node.id, { title: v }) : store.setProp(node.id, prop.id, v);
   const pv = (cls, ...kids) => h('div.pv', { class: cls, 'data-prop': prop.id }, ...kids);
 
   switch (prop.type) {
@@ -32,8 +33,10 @@ export function propValue(ctx, node, prop, { editable = true, compact = false } 
     }
     case 'date': case 'time': {
       const shown = value ? (prop.type === 'date' ? fmtDate(value) : value) : null;
-      if (!editable) return pv('pv--static', shown ? h('span.pv__stamp', shown) : h('span.pv--empty', EMPTY));
-      const el = pv('', shown ? h('span.pv__stamp', shown) : h('span.pv--empty', compact ? EMPTY : 'Empty'));
+      // a sourced record may know only the year — say so rather than showing nothing
+      const yearOnly = prop.id === 'date' && !value && node.dateConfidence === 'year' && node.props?.year ? h('span.pv__stamp', { title: 'Exact date unrecorded' }, `${node.props.year}`, h('span.t-faint', ' · year only')) : null;
+      if (!editable) return pv('pv--static', shown ? h('span.pv__stamp', shown) : yearOnly || h('span.pv--empty', EMPTY));
+      const el = pv('', shown ? h('span.pv__stamp', shown) : yearOnly || h('span.pv--empty', compact ? EMPTY : 'Empty'));
       el.onclick = e => {
         e.stopPropagation();
         const input = h('input', { type: prop.type, value: value || '' });
@@ -47,7 +50,7 @@ export function propValue(ctx, node, prop, { editable = true, compact = false } 
     }
     case 'text': {
       if (!editable) return pv('pv--static', value ? h('span.pv__text', String(value)) : h('span.pv--empty', EMPTY));
-      const t = h('div.pv__text', { contenteditable: 'true', spellcheck: 'true', 'data-placeholder': compact ? EMPTY : 'Empty', 'data-empty': String(!value) }, value || '');
+      const t = h('div.pv__text', { contenteditable: 'true', spellcheck: 'true', 'data-placeholder': isTitle ? 'Untitled' : compact ? EMPTY : 'Empty', 'data-empty': String(!value) }, value || '');
       const el = pv(prop.long ? 'pv--block' : '', t);
       el.onclick = e => { e.stopPropagation(); t.focus(); };
       t.oninput = () => t.dataset.empty = String(!t.textContent.trim());

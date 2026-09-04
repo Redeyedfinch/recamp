@@ -109,7 +109,8 @@ export function mountPage(ctx, host, nodeId, { peek = false, focusTitle = false 
       h('button.iconbtn', { type: 'button', 'aria-label': 'Page options', onclick: e => pageMenu(ctx, node, e.currentTarget) }, icon('more')),
     ] });
 
-    if (focusTitle) { focusTitle = false; setTimeout(() => setCaret(title), 30); }
+    // focus the fresh title — unless the user has already moved on (palette, dialog, menu, another field)
+    if (focusTitle) { focusTitle = false; setTimeout(() => { if (!document.querySelector('.palette-scrim, .dialog-scrim, .menu') && !document.activeElement?.closest?.('input, textarea, [contenteditable]')) setCaret(title); }, 0); }
   }
 
   function iconMenu(anchor) {

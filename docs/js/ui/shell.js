@@ -84,6 +84,9 @@ export function mountShell(ctx, root) {
   router.on('change', () => { updateMobile(); if (window.innerWidth <= 880) root.dataset.sidebar = 'closed'; });
   updateMobile();
 
+  // crossing the mobile breakpoint: the drawer closes; back on desktop it follows the saved setting
+  let wasMobile = window.innerWidth <= 880;
+  window.addEventListener('resize', () => { const m = window.innerWidth <= 880; if (m !== wasMobile) { wasMobile = m; root.dataset.sidebar = m ? 'closed' : store.setting('sidebar', 'open'); } });
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === '\\') { e.preventDefault(); shell.toggleSidebar(); }
     if (e.key === 'Escape' && shell.peekOpen && !document.querySelector('.menu, .dialog-scrim, .palette-scrim')) shell.closePeek();

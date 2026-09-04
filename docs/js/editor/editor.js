@@ -57,7 +57,10 @@ export class Editor {
 
   onChange(d) {
     if (this.muted) return;
-    if (d.type === 'hydrate' || d.id === this.nodeId || d.type === 'node:update' || d.type === 'node:create' || d.type === 'node:trash' || d.type === 'node:delete') {
+    // other nodes matter only when a page/database/event block here points at them
+    const linked = id => id && id !== this.nodeId && this.store.blocks(this.nodeId).some(b => (b.props?.pageId || b.props?.dbId || b.props?.recordId) === id);
+    const own = d.id === this.nodeId && d.type !== 'node:update';
+    if (d.type === 'hydrate' || own || ((d.type === 'node:update' || d.type === 'node:trash' || d.type === 'node:delete' || d.type === 'node:restore') && linked(d.id))) {
       const active = document.activeElement?.closest?.('.blk__text');
       if (active && this.root.contains(active)) { const blk = active.closest('.blk'); this.pendingFocus = { id: blk.dataset.id, offset: caretOffset(active), sub: active.dataset.sub || null }; }
       this.render();
@@ -403,7 +406,7 @@ export class Editor {
     this.slash = { id: block.id, query };
     if (!types.length && q.length > 1) { this.closeSlash(); return; }
     const rect = caretRect() || t.getBoundingClientRect();
-    showMenu(rect, types.map(([type, def]) => ({ label: def.label, desc: def.desc, icon: def.icon, keywords: def.slash.join(' '), onSelect: () => this.applySlash(block.id, type) })), { head: 'Blocks', cls: 'slash', width: 280, onClose: () => { this.slash = null; } });
+    showMenu(rect, types.map(([type, def]) => ({ label: def.label, desc: def.desc, icon: def.icon, keywords: def.slash.join(' '), onSelect: () => this.applySlash(block.id, type) })), { head: 'Blocks', cls: 'slash', width: 280, focus: false, onClose: () => { this.slash = null; } });
     this.slash = { id: block.id, query };
     setCaret(t, caretOffset(t)); // keep typing in the block
   }

@@ -12,7 +12,7 @@ import { dialog } from '../ui/dialog.js';
 export function mount(ctx, host) {
   const { store } = ctx;
   const ws = store.meta.workspace || {};
-  const field = h('div.login__field.grid-surface', h('div.marks', h('span.mark.mark--tl', h('b', 'RECAMP OBSERVATORY')), h('span.mark.mark--tr', sessionLabel()), h('span.mark.mark--bl', ws.coords || ''), h('span.mark.mark--br', fmtDate(new Date()))));
+  const field = h('div.login__field.grid-surface', h('div.marks', h('span.mark.mark--tl', h('b', 'RECAMP OBSERVATORY')), h('span.mark.mark--tr', sessionLabel())));
   const clientId = store.setting('googleClientId', '');
   const google = h('button.btn.btn--lg.btn--wide', { type: 'button', onclick: () => clientId ? signIn(clientId) : explain() }, icon('user'), 'Sign in with Google');
   const box = h('div.login__box',
@@ -20,7 +20,7 @@ export function mount(ctx, host) {
     h('div.login__desc.label.label--ink', (ws.descriptor || 'The Physical Science Forum').toUpperCase()),
     h('div.login__inst.label', 'JAIN SCHOOL OF SCIENCES · BENGALURU'),
     h('div.login__actions', h('button.btn.btn--primary.btn--lg.btn--wide', { type: 'button', onclick: enter }, 'Enter workspace', icon('arrowR')), google));
-  const root = h('div.login', field, box, h('div.login__foot', h('span.coord', 'INTERNAL WORKSPACE · MEMBERS OF THE FORUM'), h('span.coord', 'STORED IN THIS BROWSER UNTIL CONNECTED')));
+  const root = h('div.login', field, box, h('div.login__foot', h('span.coord', 'INTERNAL WORKSPACE · MEMBERS OF THE FORUM'), h('span.coord', ws.coords || ''), h('span.coord', fmtDate(new Date()).toUpperCase())));
   host.append(root);
   const sf = mountStarfield(field, { seed: 'recamp-enter', density: 0.00026, grid: false });
   setTimeout(() => box.querySelector('.btn--primary')?.focus(), 50);

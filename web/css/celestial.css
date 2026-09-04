@@ -38,7 +38,7 @@
 .plate { position: relative; overflow: hidden; background: var(--bg-sunken); border-bottom: 1px solid var(--line); }
 .plate svg { width: 100%; height: 100%; display: block; }
 .plate__star { fill: var(--text-secondary); }
-.plate__arc { fill: none; stroke: var(--celestial-dim); stroke-width: .8; }
+.plate__arc { fill: none; stroke: var(--celestial-dim); stroke-width: 1.1; }
 .plate__grid { stroke: var(--line-faint); stroke-width: 1; }
 .plate__mark { font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; fill: var(--text-ghost); text-transform: uppercase; }
 .plate--cover { height: 168px; }

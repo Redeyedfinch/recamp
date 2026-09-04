@@ -196,6 +196,9 @@ export class Store extends Emitter {
 
   updateNode(id, patch, { log = true } = {}) {
     const n = this.node(id); if (!n) return null;
+    // a no-op write must not emit: a title blur re-saving the same text would
+    // otherwise re-render editors mid-focus
+    if (Object.keys(patch).every(k => JSON.stringify(n[k]) === JSON.stringify(patch[k]))) return n;
     const before = { ...n };
     Object.assign(n, patch, { updatedAt: now() });
     if (log && ('title' in patch) && before.title !== n.title) this._coalesce('PAGE RENAMED', { nodeId: id, title: n.title || 'Untitled', detail: before.title ? `was “${before.title}”` : '' });

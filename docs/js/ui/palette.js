@@ -42,7 +42,9 @@ export function mountPalette(ctx) {
     if (mode !== 'new') {
       const nodes = q ? store.search(q, { limit: 14 }) : store.recent().slice(0, 6).map(node => ({ node }));
       const results = nodes.map(({ node, snippet }) => ({ group: q ? 'Results' : 'Recent', label: node.title || 'Untitled', icon: node.icon || 'page', kind: kindOf(store, node), path: pathOf(store, node) + (snippet ? ` — ${snippet}` : ''), run: () => ctx.openNode(node.id) }));
-      out = q ? [...results, ...out] : [...results, ...out];
+      // a query that names a command ("new project", "settings") puts the command first
+      const commandFirst = q.length >= 3 && out.some(c => c.label.toLowerCase().startsWith(q.toLowerCase()));
+      out = commandFirst ? [...out, ...results] : [...results, ...out];
     }
     if (q && mode !== 'new') out.push({ group: 'Search', label: `Search everything for “${q}”`, icon: 'search', kind: 'go', run: () => router.go(href.search(q).slice(1)) });
     return out;

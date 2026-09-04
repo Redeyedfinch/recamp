@@ -12,7 +12,7 @@ export function closeMenu() {
   open.el.remove(); open.cleanup(); open = null;
 }
 
-export function showMenu(anchor, items, { searchable = false, placeholder = 'Filter…', align = 'start', head = null, cls = '', onClose = null, width = null } = {}) {
+export function showMenu(anchor, items, { searchable = false, placeholder = 'Filter…', align = 'start', head = null, cls = '', onClose = null, width = null, focus = true } = {}) {
   closeMenu();
   const rect = anchor instanceof DOMRect ? anchor : anchor.getBoundingClientRect?.() || anchor;
   const el = h('div.menu', { role: 'menu', class: cls, style: width ? { minWidth: width + 'px' } : null });
@@ -35,7 +35,8 @@ export function showMenu(anchor, items, { searchable = false, placeholder = 'Fil
         it.kbd ? h('span.menu__item__kbd', it.kbd) : null,
         it.selected ? icon('check') : null,
       );
-      btn.addEventListener('click', e => { e.stopPropagation(); const keep = it.onSelect?.(it, e); if (keep !== true) closeMenu(); });
+      // if onSelect opened another menu, `open` has moved on — leave that one alone
+      btn.addEventListener('click', e => { e.stopPropagation(); const mine = open; const keep = it.onSelect?.(it, e); if (keep !== true && open === mine) closeMenu(); });
       btn.addEventListener('mousemove', () => select(items_().indexOf(btn)));
       list.append(btn); shown++;
     });
@@ -68,7 +69,7 @@ export function showMenu(anchor, items, { searchable = false, placeholder = 'Fil
   if (input) {
     input.addEventListener('input', () => { const q = input.value.trim().toLowerCase(); filtered = q ? items.filter(it => it !== 'sep' && !it.sep && (it.label + ' ' + (it.desc || '') + ' ' + (it.keywords || '')).toLowerCase().includes(q)) : items; render(); });
     setTimeout(() => input.focus(), 0);
-  } else { setTimeout(() => items_()[0]?.focus(), 0); }
+  } else if (focus) { setTimeout(() => items_()[0]?.focus(), 0); }   // the slash menu keeps focus in the editor
 
   open = { el, cleanup() { document.removeEventListener('keydown', onKey, true); document.removeEventListener('mousedown', onDown, true); document.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', closeMenu); onClose?.(); } };
   return el;

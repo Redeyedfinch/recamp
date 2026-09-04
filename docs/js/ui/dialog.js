@@ -34,7 +34,9 @@ export function dialog({ title, body, actions = [], wide = false, modal = false,
     document.addEventListener('keydown', onKey, true);
     document.body.append(scrim);
     openDialog = { close };
-    setTimeout(() => { (initialFocus ? box.querySelector(initialFocus) : box.querySelector('input, textarea, select, [contenteditable], .btn--primary, button'))?.focus(); onOpen?.(bodyEl); }, 0);
+    // a field first, then the primary action, then any footer button — never the header's Close
+    const firstFocusable = () => bodyEl.querySelector('input, textarea, select, [contenteditable]') || box.querySelector('.dialog__foot .btn--primary') || box.querySelector('.dialog__foot button');
+    setTimeout(() => { (initialFocus ? box.querySelector(initialFocus) : firstFocusable())?.focus(); onOpen?.(bodyEl); }, 0);
   });
 }
 

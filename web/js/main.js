@@ -15,6 +15,10 @@ import { inboxItems } from './views/inbox.js';
 
 const store = new Store(new LocalAdapter());
 await store.init();
+// ?enter=1 skips the Enter screen (QA screenshots, kiosk links); ?theme=light|dark presets the theme.
+if (/[?&]enter=1/.test(location.search)) store.setSetting('entered', true);
+const themeParam = /[?&]theme=(light|dark)/.exec(location.search)?.[1];
+if (themeParam) store.setSetting('theme', themeParam);
 
 /* ---- theme ---------------------------------------------------------- */
 const themeEmitter = new Emitter();
@@ -63,6 +67,7 @@ const ctx = {
 const root = document.getElementById('app');
 mountShell(ctx, root);
 ctx.palette = mountPalette(ctx);
+window.recamp = ctx;            // console access + the QA driver
 
 /* ---- cloud, if configured -------------------------------------------- */
 const cloudCfg = store.setting('cloud', null);
@@ -126,4 +131,4 @@ document.addEventListener('keydown', e => {
 window.addEventListener('beforeunload', () => { store.flushNow(); });
 window.addEventListener('pagehide', () => { store.flushNow(); });
 
-if (store._seeded) toast('Welcome. This workspace is stored in your browser until you connect a Google Sheet.', { action: 'Guide', onAction: () => router.page('p_guide'), duration: 8000 });
+if (store._seeded) { const once = router.on('change', r => { if (r.name !== 'enter') { once(); toast('Welcome. This workspace is stored in your browser until you connect a Google Sheet.', { action: 'Guide', onAction: () => router.page('p_guide'), duration: 8000 }); } }); if (router.current.name !== 'enter') once(), toast('Welcome. This workspace is stored in your browser until you connect a Google Sheet.', { action: 'Guide', onAction: () => router.page('p_guide'), duration: 8000 }); }

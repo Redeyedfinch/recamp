@@ -10,7 +10,8 @@ export function h(tag, attrs, ...children) {
     children.unshift(attrs); attrs = null;
   }
   const m = /^([a-z0-9-]+)?((?:[.#][\w-]+)*)$/i.exec(tag) || [];
-  const el = document.createElement(m[1] || 'div');
+  const name = m[1] || 'div';
+  const el = name === 'svg' ? document.createElementNS('http://www.w3.org/2000/svg', 'svg') : document.createElement(name);
   (m[2] || '').match(/[.#][\w-]+/g)?.forEach(t => t[0] === '.' ? el.classList.add(t.slice(1)) : (el.id = t.slice(1)));
 
   if (attrs) for (const [k, v] of Object.entries(attrs)) {
