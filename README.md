@@ -31,7 +31,7 @@ Requires Node ≥ 20 and, for the QA scripts, Chrome or Edge.
 
 ```
 web/            the application — static ES modules, hand-written CSS
-  css/          tokens → base → layout → components → editor → views → celestial
+  css/          tokens → base → layout → components → editor → views → celestial → mobile
   js/core       ids, fractional ordering, dates, icons, DOM helpers
   js/data       schema, seed (with provenance), store, storage adapters
   js/editor     block editor, KaTeX loader

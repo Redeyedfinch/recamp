@@ -74,7 +74,7 @@ npm test               # 26 unit tests: ordering, store tree ops, seed provenanc
 npm run serve          # dev server on :4180
 npm run build          # web/ → docs/
 node build/qa.mjs      # screenshot all 20 routes; --light --mobile --only a,b --url <live>
-node build/e2e.mjs     # 19-step checklist driven through the real UI
+node build/e2e.mjs     # 23-step checklist driven through the real UI (incl. 5 mobile)
 ```
 
 Run `npm test` and `node build/e2e.mjs` before committing UI changes.
