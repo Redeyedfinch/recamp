@@ -1,0 +1,201 @@
+/* ==========================================================================
+   RECAMP — phone recomposition (≤640px)
+   Not the desktop stacked: the table becomes a record card, the calendar an
+   agenda, the board a swipeable deck, and a page shows its content before its
+   metadata. Loaded last so it can override the view stylesheets.
+   ========================================================================== */
+
+@media (max-width: 640px) {
+
+  /* ---- chrome ---------------------------------------------------------- */
+
+  .topbar { padding: 0 6px; gap: 4px; }
+  /* Four truncated crumbs tell you nothing. One step back, and where you are. */
+  .topbar__crumbs .crumb { display: none; }
+  .topbar__crumbs .crumb:last-child { display: inline-flex; max-width: none; flex: 1; min-width: 0; font-weight: 500; }
+  .topbar__crumbs .crumb__sep { display: none; }
+  .topbar__crumbs .crumb--back { display: inline-flex; flex: none; padding: 3px 4px; color: var(--text-faint); }
+  .topbar__crumbs .crumb--back .icon { width: 17px; height: 17px; }
+
+  /* Bottom bar clearance for everything that floats */
+  .toasts { bottom: calc(52px + env(safe-area-inset-bottom) + 12px); left: 12px; right: 12px; transform: none; }
+  .toast { width: 100%; }
+  .peek { bottom: calc(52px + env(safe-area-inset-bottom)); }
+  .mobilebar button { gap: 4px; padding-top: 2px; }
+
+  /* Touch targets: the visual size stays quiet, the hit area grows. */
+  .iconbtn { width: 34px; height: 34px; }
+  .iconbtn--sm { width: 30px; height: 30px; }
+  .nav-item { min-height: 38px; padding: 6px var(--s2); }
+  .tree__toggle { width: 30px; height: 30px; margin-left: -6px; }
+  .checkbox { position: relative; }
+  .checkbox::after { content: ''; position: absolute; inset: -11px; }
+  .tab { height: 42px; }
+  .btn { height: 36px; }
+  .btn--sm { height: 32px; }
+
+  /* ---- view frame ------------------------------------------------------ */
+
+  .view { padding: var(--s5) var(--s4) calc(var(--s9) + 52px + env(safe-area-inset-bottom)); }
+  .view--wide { padding-left: var(--s4); padding-right: var(--s4); }
+  .viewhead { flex-direction: column; align-items: stretch; gap: var(--s3); }
+  .viewhead__actions { width: 100%; }
+  .viewhead__actions .btn { flex: 1; justify-content: center; }
+  .viewhead__kicker { flex-wrap: wrap; gap: 6px 12px; }
+  .section { margin-top: var(--s6); }
+
+  /* ---- masthead: the corner marks were landing on the address ---------- */
+
+  .masthead { padding: var(--s6) var(--s4) var(--s5); }
+  .masthead .mark--bl, .masthead .mark--br { display: none; }
+  .masthead .mark--tl, .masthead .mark--tr { font-size: 9.5px; }
+  .masthead__inst { margin-top: var(--s4); gap: 4px; }
+  .masthead__inst .coord { white-space: normal; }
+  .home__title { font-size: 2.1rem; }
+  .greeting { font-size: 1.25rem; }
+
+  /* ---- database toolbar: show that the tabs run on -------------------- */
+
+  .dbview__head { gap: var(--s3); }
+  .dbview__title { font-size: 1.9rem; }
+  .dbview__toolbar { gap: 0; position: relative; }
+  .tabs { width: 100%; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { scroll-snap-align: start; }
+  .dbview__toolbar::after {
+    content: ''; position: absolute; right: 0; top: 0; height: 42px; width: 28px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--bg-surface));
+  }
+  .dbview__count { display: none; }
+  .dbview__toolbar .btn--ghost { padding: 0 8px; }
+
+  /* ---- table → record cards ------------------------------------------- */
+  /* .dbtable is a grid whose columns are set inline; display:block drops them. */
+
+  .dbtable-wrap { overflow-x: visible; margin: 0; padding: 0; }
+  .dbtable { display: block; margin-top: var(--s3); }
+  .dbtable__head { display: none; }
+  .dbtable__row { display: block; padding: 12px 0 14px; border-bottom: 1px solid var(--line); }
+  .dbtable__row:hover .dbtable__cell { background: none; }
+  .dbtable__cell {
+    display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px;
+    align-items: baseline; border: 0; min-height: 0; padding: 3px 0;
+  }
+  .dbtable__cell::before {
+    content: attr(data-label);
+    font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 500;
+    letter-spacing: var(--track-label); text-transform: uppercase; color: var(--text-ghost);
+  }
+  /* Empty properties would be a wall of dashes — drop them from the card. */
+  .dbtable__cell[data-empty='true'] { display: none; }
+  .dbtable__cell--title { grid-template-columns: minmax(0, 1fr); padding-bottom: 6px; }
+  .dbtable__cell--title::before { display: none; }
+  .dbtable__cell--title .dbtable__title { flex-wrap: wrap; }
+  .dbtable__cell--title .pv__text { font-size: var(--fs-body); font-weight: 500; }
+  .dbtable__cell--menu { display: none; }
+  .dbtable__open { opacity: 1; }
+  .dbtable__add { padding: 14px 0; border-bottom: 0; }
+  .dbtable__group { padding: var(--s5) 0 var(--s2); }
+
+  /* ---- board → a deck you swipe --------------------------------------- */
+
+  .board { gap: 0; margin: 0 calc(-1 * var(--s4)); padding: var(--s4) 0; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .board::-webkit-scrollbar { display: none; }
+  .board__col { flex: 0 0 86vw; max-width: 86vw; scroll-snap-align: center; padding: 0 var(--s2); }
+  .board__col:first-child { padding-left: var(--s4); }
+  .board__col:last-child { padding-right: var(--s4); }
+  .card { padding: 12px 14px; }
+
+  /* ---- calendar: the agenda replaces the grid (see database.js) -------- */
+
+  .agenda { margin-top: var(--s4); }
+  .agenda__nav { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s2); }
+  .agenda__month { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: -0.01em; margin-right: auto; }
+  .agenda__day { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: var(--s3); padding: 12px 0; border-bottom: 1px solid var(--line-faint); align-items: start; }
+  .agenda__date { text-align: center; padding-top: 2px; }
+  .agenda__n { font-family: var(--font-display); font-size: 1.5rem; line-height: 1; color: var(--text-primary); }
+  .agenda__dow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint); margin-top: 3px; }
+  .agenda__day--today .agenda__n { color: var(--stellar); }
+  .agenda__items { display: grid; gap: 8px; min-width: 0; }
+  .agenda__item { text-align: left; display: grid; gap: 5px; padding: 2px 0; }
+  .agenda__title { font-size: var(--fs-body); color: var(--text-primary); line-height: 1.35; }
+  .agenda__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .agenda__empty { padding: var(--s6) 0; color: var(--text-faint); font-size: var(--fs-ui); }
+
+  /* ---- timeline: keep it horizontal, just let it breathe --------------- */
+
+  .tl { margin: 0 calc(-1 * var(--s4)); padding: 0 var(--s4); }
+  .tl__unplaced { margin-left: 0; }
+
+  /* ---- gallery --------------------------------------------------------- */
+
+  .gallery { grid-template-columns: 1fr; gap: var(--s3); }
+  .plate--gallery { height: 88px; }
+
+  /* ---- page: content before metadata ----------------------------------- */
+
+  .page__cover { margin: calc(-1 * var(--s5)) calc(-1 * var(--s4)) var(--s5); }
+  .plate--cover { height: 120px; }
+  .page__title { font-size: 1.85rem; }
+  .page__tools { opacity: 1; }
+  .page__tools .btn--ghost span { display: none; }
+  .props__row { grid-template-columns: 110px minmax(0, 1fr); gap: var(--s3); align-items: baseline; padding: 5px 0; min-height: 0; }
+  .props__label { padding: 0; }
+  .props__label .icon { display: none; }
+  .props__value { padding: 0; }
+  .props__more { width: 100%; justify-content: center; margin-top: var(--s2); }
+  /* The hero's Status / Type / Date lines repeat the editable properties
+     directly below them. Keep the almanac tile, drop the duplication. */
+  .record-hero { grid-template-columns: auto; gap: var(--s4); }
+  .record-hero__lines { display: none; }
+  .children__row, .inbox__row, .knowledge__row { padding: 12px 0; }
+
+  /* ---- editor ---------------------------------------------------------- */
+  /* HTML5 drag does not fire on touch, so the handle would be a lie. The
+     block menu moves to a button on the focused block instead. */
+
+  .blk__gutter { display: none; }
+  .blk { margin: 2px 0; }
+  .blk__menu-touch {
+    position: absolute; right: -4px; top: 0; width: 30px; height: 30px;
+    display: none; place-items: center; color: var(--text-faint);
+    background: var(--bg-surface); border-radius: var(--radius-control);
+  }
+  .blk.is-active > .blk__menu-touch { display: grid; }
+  .blk.is-active > .blk__body { padding-right: 34px; }   /* text flows clear of the button */
+  .blk[data-type='h1'] .blk__text { font-size: 1.4rem; }
+  .editor__tail { height: 120px; }
+  .fmt button { height: 34px; min-width: 34px; }
+
+  /* ---- dialogs & menus ------------------------------------------------- */
+
+  .dialog-scrim { padding: 0; align-items: flex-end; }
+  .dialog { width: 100%; max-height: 88vh; border-radius: var(--radius-surface) var(--radius-surface) 0 0; border-bottom: 0; }
+  .dialog__foot { padding-bottom: calc(var(--s5) + env(safe-area-inset-bottom)); }
+  .dialog__foot .btn { flex: 1; justify-content: center; }
+  .menu { max-width: calc(100vw - 16px); max-height: 60vh; }
+  .menu__item { padding: 10px 8px; }
+  .palette-scrim { padding: 8vh 8px 8px; }
+  .palette__item { padding: 11px 10px; }
+  .palette__foot { display: none; }
+
+  /* ---- settings & archive ---------------------------------------------- */
+
+  .settings__section { padding: var(--s5) 0; }
+  .settings__row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .theme-swatches .swatch { flex: 1; width: auto; }
+  .archive__yearnum { font-size: 2rem; }
+  .archive__entry { padding: var(--s4) 0; }
+  .archive__etitle { font-size: 1.35rem; }
+  /* views.css already says display:none, but celestial.css's `.arc` loads after
+     it at equal specificity and wins. This file is last, so it settles it. */
+  .archive__arc { display: none; }
+  .searchbox { height: 42px; }
+}
+
+/* Landscape phones: the bottom bar eats too much of a short viewport. */
+@media (max-height: 460px) and (max-width: 900px) {
+  .mobilebar { display: none !important; }
+  .view { padding-bottom: var(--s8); }
+  .toasts { bottom: 12px; }
+}

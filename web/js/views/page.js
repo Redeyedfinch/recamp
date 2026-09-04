@@ -11,6 +11,7 @@ import { showMenu } from '../ui/menu.js';
 import { confirm, prompt } from '../ui/dialog.js';
 import { propValue, catalogueMark, provenanceMark, statusTag, typeTag, dateLine } from '../ui/props.js';
 import { ICONS } from '../core/icons.js';
+import { isPhone, onPhoneChange } from '../core/viewport.js';
 import { PROP_TYPES } from '../data/schema.js';
 import { href } from '../ui/router.js';
 import { datebox } from './home.js';
@@ -28,7 +29,7 @@ export function mount(ctx, host, route) {
 export function mountPage(ctx, host, nodeId, { peek = false, focusTitle = false } = {}) {
   const { store } = ctx;
   const root = h('article.page'); host.append(root);
-  let editor = null; let destroyed = false;
+  let editor = null; let destroyed = false; let showAllProps = false;
   const saveTitle = debounce((v) => store.updateNode(nodeId, { title: v }), 400);
 
   function render() {
@@ -74,12 +75,18 @@ export function mountPage(ctx, host, nodeId, { peek = false, focusTitle = false 
     /* properties */
     if (isRecord && db) {
       const props = h('div.props');
-      for (const p of db.schema) {
+      // On a phone, eleven mostly-empty rows push the writing off the screen.
+      // Show what is filled in; keep the blanks one tap away so they stay fillable.
+      const filled = p => { const v = node.props?.[p.id]; return !(v == null || v === '' || (Array.isArray(v) && !v.length) || v === false) || ['created', 'updated'].includes(p.type) || (p.id === 'date' && node.dateConfidence === 'year'); };
+      const collapse = isPhone() && !showAllProps && db.schema.some(p => !filled(p));
+      const shown = collapse ? db.schema.filter(filled) : db.schema;
+      for (const p of shown) {
         props.append(h('div.props__row',
           h('button.props__label.label', { type: 'button', onclick: e => propMenu(db, p, e.currentTarget) }, icon(iconForType(p.type)), p.name),
           h('div.props__value', propValue(ctx, node, p))));
       }
-      props.append(h('div.props__add', h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: e => addPropMenu(db, e.currentTarget) }, icon('plus'), 'Add a property')));
+      if (collapse) props.append(h('div.props__add', h('button.btn.btn--ghost.btn--sm.props__more', { type: 'button', onclick: () => { showAllProps = true; render(); } }, icon('chevronD'), `Show all ${db.schema.length} properties`)));
+      else props.append(h('div.props__add', h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: e => addPropMenu(db, e.currentTarget) }, icon('plus'), 'Add a property')));
       root.append(props);
     }
 
@@ -137,8 +144,9 @@ export function mountPage(ctx, host, nodeId, { peek = false, focusTitle = false 
     render();
   });
   function refreshCrumbs() { if (!peek) { const n = store.node(nodeId); if (n) ctx.shell.setTopbar({ crumbs: crumbsFor(store, n), actions: [...ctx.shell.content.ownerDocument.querySelectorAll('.topbar__actions > *')] }); } }
+  const unsubPhone = onPhoneChange(() => render());
   render();
-  return { destroy() { destroyed = true; unsub(); editor?.destroy(); saveTitle.flush?.(root.querySelector('.page__title')?.textContent.trim() ?? store.node(nodeId)?.title); } };
+  return { destroy() { destroyed = true; unsub(); unsubPhone(); editor?.destroy(); saveTitle.flush?.(root.querySelector('.page__title')?.textContent.trim() ?? store.node(nodeId)?.title); } };
 }
 
 export function crumbsFor(store, node) {

@@ -21,7 +21,7 @@ with any employer's systems or data.
 npm test            # unit tests: ordering, store tree ops, seed provenance
 npm run serve       # http://localhost:4180  (no build step, no dependencies)
 npm run build       # web/ → docs/  (GitHub Pages root)
-node build/qa.mjs   # headless screenshots of every route into qa/
+node build/qa.mjs   # screenshots of every route into qa/ (--light --mobile --url)
 node build/e2e.mjs  # end-to-end checklist through the real UI
 ```
 
@@ -88,6 +88,17 @@ Instagram handle, the forum's stated purpose). **DEMO** content is placeholder
 — no member names, statistics, sponsors, awards or testimonials are invented,
 and where a date is not known the record says *Date unavailable*. The seed
 tests in `tests/seed.test.mjs` enforce this.
+
+## Mobile
+
+Phones (≤640px) get a recomposed layout, not the desktop stacked: the database
+table becomes labelled record cards with empty properties dropped, the calendar
+becomes an agenda, the board a swipeable deck that opens on the first column
+holding records, breadcrumbs collapse to one step back plus where you are, and
+a record shows the properties it has filled with the rest one tap away. The
+block drag handle is replaced by a menu button, since HTML5 drag never fires on
+touch. `node build/qa.mjs --mobile` and the mobile steps in `build/e2e.mjs`
+cover it.
 
 ## Design
 

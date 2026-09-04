@@ -150,6 +150,10 @@ export class Editor {
     }
 
     if (children.length || block.type === 'toggle') { this.renderList(kids, children, depth + 1); body.append(kids); }
+    // Touch has no hover and HTML5 drag never fires, so the gutter handle is
+    // useless there. The focused block gets a real button instead; reordering
+    // lives behind Move up / Move down in the same menu.
+    if (!this.readonly) el.append(h('button.blk__menu-touch', { type: 'button', 'aria-label': 'Block options', tabindex: '-1', onmousedown: e => e.preventDefault(), onclick: e => { e.stopPropagation(); this.blockMenu(block, e.currentTarget); } }, icon('more')));
     return el;
   }
 
@@ -239,7 +243,13 @@ export class Editor {
     r.addEventListener('input', e => this.onInput(e));
     r.addEventListener('keydown', e => this.onKeyDown(e));
     r.addEventListener('paste', e => this.onPaste(e));
-    r.addEventListener('focusin', e => { if (e.target.closest('.blk__text')) this.clearSelection(); });
+    r.addEventListener('focusin', e => {
+      if (e.target.closest('.blk__text')) this.clearSelection();
+      const blk = e.target.closest('.blk');
+      r.querySelectorAll('.blk.is-active').forEach(b => { if (b !== blk) b.classList.remove('is-active'); });
+      blk?.classList.add('is-active');
+    });
+    r.addEventListener('focusout', e => { if (!r.contains(e.relatedTarget)) r.querySelectorAll('.blk.is-active').forEach(b => b.classList.remove('is-active')); });
     r.addEventListener('mousedown', e => { if (!e.target.closest('.blk__text, button, input, a')) { /* click in gutter/whitespace */ } });
     r.addEventListener('dragstart', e => this.onDragStart(e));
     r.addEventListener('dragover', e => this.onDragOver(e));

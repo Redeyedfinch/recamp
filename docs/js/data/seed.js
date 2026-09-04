@@ -216,7 +216,7 @@ export function buildSeed() {
     H2('Writing'),
     B('Type <b>/</b> on an empty line for blocks: headings, lists, to-dos, quotes, callouts, tables, code, equations, images, a route/timeline, a nested page.'),
     B('<b>Enter</b> makes a new block, <b>Backspace</b> on an empty block removes it, <b>Tab</b> indents a list item.'),
-    B('Drag the handle at the left of a block to reorder it.'),
+    B('Reorder a block by dragging the handle at its left. On a phone, tap into the block and use the <b>⋯</b> button — <i>Move up</i> / <i>Move down</i>.'),
     H2('Facts and placeholders'),
     P('Records marked <span class="prov" data-prov="sourced">sourced</span> come from RECAMP\'s public record. Records marked <span class="prov" data-prov="demo">demo</span> are placeholders. Delete or replace demo content freely — nothing depends on it.'),
     H2('Storage'),

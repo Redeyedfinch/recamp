@@ -10,6 +10,7 @@ import { prompt, confirm } from '../ui/dialog.js';
 import { toneOf, PROP_TYPES } from '../data/schema.js';
 import { arr } from '../data/store.js';
 import { plateEl } from '../ui/plate.js';
+import { isPhone, onPhoneChange } from '../core/viewport.js';
 import { href } from '../ui/router.js';
 import { iconForType } from './page.js';
 import { empty } from './common.js';
@@ -74,9 +75,12 @@ export function mountDatabase(ctx, host, dbId, { viewId = null, fixedFilters = [
       if (g.key !== null) grid.append(h('div.dbtable__group', h('span.node', { 'data-tone': g.tone }), h('span.label.label--ink', g.key || 'None'), h('span.count', String(g.rows.length))));
       for (const r of g.rows) {
         const row = h('div.dbtable__row', { role: 'row', 'data-id': r.id });
-        row.append(h('div.dbtable__cell', h('div.dbtable__title', icon(r.icon || 'page'), propValue(ctx, r, { id: '__title', type: 'text' }, { compact: true }), r.provenance === 'demo' ? h('span.prov', { 'data-prov': 'demo' }, 'demo') : null, h('span.dbtable__seq', `${db.catalogue}-${String(r.seq || 0).padStart(3, '0')}`), h('button.iconbtn.iconbtn--sm.dbtable__open', { type: 'button', 'aria-label': 'Open', onclick: e => { e.stopPropagation(); ctx.openNode(r.id, { peek: true }); } }, icon('arrowUR')))));
-        cols.forEach(p => row.append(h('div.dbtable__cell', propValue(ctx, r, p, { compact: true }))));
-        row.append(h('div.dbtable__cell', h('button.iconbtn.iconbtn--sm', { type: 'button', 'aria-label': 'Row options', onclick: e => rowMenu(r, e.currentTarget) }, icon('more'))));
+        row.append(h('div.dbtable__cell.dbtable__cell--title', h('div.dbtable__title', icon(r.icon || 'page'), propValue(ctx, r, { id: '__title', type: 'text' }, { compact: true }), r.provenance === 'demo' ? h('span.prov', { 'data-prov': 'demo' }, 'demo') : null, h('span.dbtable__seq', `${db.catalogue}-${String(r.seq || 0).padStart(3, '0')}`), h('button.iconbtn.iconbtn--sm.dbtable__open', { type: 'button', 'aria-label': 'Open', onclick: e => { e.stopPropagation(); ctx.openNode(r.id, { peek: true }); } }, icon('arrowUR')))));
+        // data-label / data-empty drive the phone card layout in mobile.css:
+        // the header row is gone there, so each value carries its own label and
+        // empty ones drop out instead of printing a column of dashes.
+        cols.forEach(p => row.append(h('div.dbtable__cell', { dataset: { label: p.name, empty: String(!formatValue(store, r, p) && !(p.id === 'date' && r.dateConfidence === 'year')) } }, propValue(ctx, r, p, { compact: true }))));
+        row.append(h('div.dbtable__cell.dbtable__cell--menu', h('button.iconbtn.iconbtn--sm', { type: 'button', 'aria-label': 'Row options', onclick: e => rowMenu(r, e.currentTarget) }, icon('more'))));
         grid.append(row);
       }
     }
@@ -108,6 +112,9 @@ export function mountDatabase(ctx, host, dbId, { viewId = null, fixedFilters = [
       wrap.append(col);
     }
     body.append(wrap);
+    // A phone shows one column at a time. Landing on two empty status columns
+    // and having to swipe four times to reach the records is a poor first look.
+    if (isPhone()) requestAnimationFrame(() => { const first = [...wrap.querySelectorAll('.board__col')].find(c => c.querySelector('.card')); if (first) wrap.scrollLeft = first.offsetLeft - wrap.offsetLeft; });
   }
   let dragging = null;
   function card(db, view, r, groupProp) {
@@ -125,6 +132,9 @@ export function mountDatabase(ctx, host, dbId, { viewId = null, fixedFilters = [
   function calendar(body, db, view, rows) {
     const prop = db.schema.find(p => p.id === view.dateProp && p.type === 'date') || firstDate(db);
     if (!prop) { body.append(empty('Add a date property to use a calendar.')); return; }
+    // Seven columns in 420px gives 57px cells and titles clipped to "Gate…".
+    // A phone gets the agenda the grid was standing in for.
+    if (isPhone()) return agenda(body, db, view, rows, prop);
     const today = new Date();
     if (!calMonth) { const first = rows.map(r => r.props[prop.id]).filter(Boolean).sort(); const upcoming = first.find(d => d >= isoDate(today)); const base = toDate(upcoming || first[first.length - 1]) || today; calMonth = new Date(base.getFullYear(), base.getMonth(), 1); }
     const y = calMonth.getFullYear(), m = calMonth.getMonth();
@@ -147,6 +157,47 @@ export function mountDatabase(ctx, host, dbId, { viewId = null, fixedFilters = [
     }
     const undated = rows.filter(r => !r.props[prop.id]);
     body.append(h('div.cal', nav, grid, undated.length ? h('div.tl__unplaced', h('div.section__head', h('span.label', `${undated.length} without a ${prop.name.toLowerCase()}`)), undated.map(r => h('button.inline-db__row', { type: 'button', style: { width: '100%' }, onclick: () => ctx.openNode(r.id, { peek: true }) }, icon(r.icon || 'page'), h('span.grow.truncate', { style: { textAlign: 'left' } }, r.title || 'Untitled'), r.dateConfidence === 'year' ? h('span.coord', `${r.props.year} · YEAR ONLY`) : h('span.coord', 'DATE UNAVAILABLE')))) : null));
+  }
+
+  /** Phone calendar: month nav, then only the days that hold something. */
+  function agenda(body, db, view, rows, prop) {
+    const today = new Date();
+    if (!calMonth) { const all = rows.map(r => r.props[prop.id]).filter(Boolean).sort(); const next = all.find(d => d >= isoDate(today)); calMonth = new Date((toDate(next || all[all.length - 1]) || today).getFullYear(), (toDate(next || all[all.length - 1]) || today).getMonth(), 1); }
+    const y = calMonth.getFullYear(), m = calMonth.getMonth();
+    const statusProp = db.schema.find(p => p.id === 'status');
+    const inMonth = rows.filter(r => { const d = r.props[prop.id]; return d && toDate(d).getFullYear() === y && toDate(d).getMonth() === m; })
+      .sort((a, b) => a.props[prop.id].localeCompare(b.props[prop.id]));
+    const byDay = new Map();
+    for (const r of inMonth) { const k = r.props[prop.id]; if (!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(r); }
+
+    const wrap = h('div.agenda',
+      h('div.agenda__nav',
+        h('h2.agenda__month', `${MONTHS_LONG[m]} ${y}`),
+        h('button.iconbtn', { type: 'button', 'aria-label': 'Previous month', onclick: () => { calMonth = new Date(y, m - 1, 1); render(); } }, icon('chevronL')),
+        h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: () => { calMonth = new Date(today.getFullYear(), today.getMonth(), 1); render(); } }, 'Today'),
+        h('button.iconbtn', { type: 'button', 'aria-label': 'Next month', onclick: () => { calMonth = new Date(y, m + 1, 1); render(); } }, icon('chevronR'))));
+
+    if (!byDay.size) wrap.append(h('div.agenda__empty', `Nothing dated in ${MONTHS_LONG[m]}. `, h('button.btn.btn--sm', { type: 'button', onclick: () => create(view, { [prop.id]: isoDate(new Date(y, m, 1)) }) }, icon('plus'), 'Add')));
+    for (const [iso, items] of byDay) {
+      const d = toDate(iso);
+      wrap.append(h('div.agenda__day', { class: iso === isoDate(today) ? 'agenda__day--today' : '' },
+        h('div.agenda__date', h('div.agenda__n', String(d.getDate()).padStart(2, '0')), h('div.agenda__dow', DAYS[d.getDay()])),
+        h('div.agenda__items', items.map(r => h('button.agenda__item', { type: 'button', onclick: () => ctx.openNode(r.id, { peek: true }) },
+          h('span.agenda__title', r.title || 'Untitled'),
+          h('span.agenda__meta',
+            statusProp && r.props.status ? h('span.tag.tag--soft', { 'data-tone': toneOf(statusProp.options, r.props.status) }, r.props.status) : null,
+            r.props.time ? h('span.coord', r.props.time) : null,
+            r.props.venue ? h('span.coord', r.props.venue.toUpperCase()) : null))))));
+    }
+
+    const undated = rows.filter(r => !r.props[prop.id]);
+    if (undated.length) {
+      wrap.append(h('div.section', h('div.section__head', h('span.label', `${undated.length} without a ${prop.name.toLowerCase()}`)),
+        undated.map(r => h('button.inline-db__row', { type: 'button', style: { width: '100%' }, onclick: () => ctx.openNode(r.id, { peek: true } ) },
+          icon(r.icon || 'page'), h('span.grow.truncate', { style: { textAlign: 'left' } }, r.title || 'Untitled'),
+          r.dateConfidence === 'year' ? h('span.coord', `${r.props.year}`) : h('span.coord', 'NO DATE')))));
+    }
+    body.append(wrap);
   }
 
   /* ------------------------------------------------------------ gallery */
@@ -274,10 +325,11 @@ export function mountDatabase(ctx, host, dbId, { viewId = null, fixedFilters = [
   }
 
   const unsub = store.on('change', d => { if (['block:update', 'recent', 'noop'].includes(d.type)) return; if (d.type === 'node:touch') return; render(); });
+  const unsubPhone = onPhoneChange(() => render());   // table ⇄ cards, calendar ⇄ agenda
   render();
   const db = store.db(dbId);
   ctx.shell.setTopbar({ crumbs: [{ title: 'Workspace', href: '#/', icon: 'home' }, { title: title || db.title, icon: db.icon }], actions: title ? [] : [h('button.iconbtn', { type: 'button', 'aria-label': 'Favorite', 'aria-pressed': String(store.isFavorite(dbId)), onclick: () => store.toggleFavorite(dbId) }, icon(store.isFavorite(dbId) ? 'starFill' : 'star'))] });
-  return { destroy() { unsub(); } };
+  return { destroy() { unsub(); unsubPhone(); } };
 }
 
 /* ----------------------------------------------------------- pure helpers */

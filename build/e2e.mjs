@@ -198,8 +198,9 @@ await step('keyboard: Tab reaches the sidebar, Ctrl+\\ toggles it, Escape closes
 });
 
 await step('mobile: bottom bar shows, Menu opens the sidebar drawer, scrim closes it', async () => {
-  await b.setViewport(420, 860, true);
+  await b.setViewport(420, 860);
   await b.navigate(`${base}#/`);
+  assert((await b.evaluate('window.innerWidth')) === 420, 'viewport is not reporting true CSS pixels');
   assert(await b.waitFor(`getComputedStyle(document.querySelector('.mobilebar')).display === 'flex'`), 'mobile bar hidden');
   assert(await b.evaluate(`document.getElementById('app').dataset.sidebar === 'closed'`), 'sidebar should start closed on mobile');
   await b.evaluate(`[...document.querySelectorAll('.mobilebar button')].find(x => x.textContent.includes('Menu')).click()`);
@@ -209,10 +210,66 @@ await step('mobile: bottom bar shows, Menu opens the sidebar drawer, scrim close
   await b.screenshot(path.join(out, 'e2e-mobile-home.png'));
 });
 
+await step('mobile: nothing scrolls the page sideways, and the toast clears the bottom bar', async () => {
+  for (const hash of ['#/', '#/db/db_events', '#/archive', '#/p/r_evt_gates_solace', '#/settings', '#/activity']) {
+    await b.navigate(`${base}${hash}`);
+    const over = await b.evaluate(`({ body: document.body.scrollWidth, win: window.innerWidth })`);
+    assert(over.body <= over.win + 1, `${hash} overflows sideways (${over.body} > ${over.win})`);
+  }
+  await b.navigate(`${base}#/`);
+  await b.evaluate(`window.recamp.toast('probe')`);
+  assert(await b.waitFor(`!!document.querySelector('.toast')`), 'no toast');
+  assert(await b.evaluate(`(() => { const t = document.querySelector('.toast').getBoundingClientRect(); const m = document.querySelector('.mobilebar').getBoundingClientRect(); return t.bottom <= m.top; })()`), 'toast overlaps the bottom bar');
+});
+
+await step('mobile: the table becomes labelled cards and the calendar becomes an agenda', async () => {
+  await b.navigate(`${base}#/db/db_events`);
+  const table = await b.evaluate(`(() => {
+    const wrap = document.querySelector('.dbtable-wrap');
+    const cell = document.querySelector('.dbtable__cell[data-label]');
+    return { scrolls: wrap.scrollWidth > wrap.clientWidth + 1,
+             headHidden: getComputedStyle(document.querySelector('.dbtable__head')).display === 'none',
+             label: cell && getComputedStyle(cell, '::before').content,
+             emptiesHidden: [...document.querySelectorAll('.dbtable__cell[data-empty="true"]')].every(c => getComputedStyle(c).display === 'none') };
+  })()`);
+  assert(!table.scrolls, 'table still scrolls horizontally on a phone');
+  assert(table.headHidden, 'column header row should be hidden');
+  assert(table.label && table.label !== 'none', 'cells are not showing their property label');
+  assert(table.emptiesHidden, 'empty properties should drop out of the card');
+  await b.navigate(`${base}#/db/db_events?v=v_cal`);
+  assert(await b.waitFor(`!!document.querySelector('.agenda') && !document.querySelector('.cal__grid')`), 'calendar did not become an agenda');
+  assert(await b.evaluate(`[...document.querySelectorAll('.agenda__title')].some(t => t.textContent === 'Gates of Solace')`), 'agenda is missing the dated event');
+});
+
+await step('mobile: breadcrumbs collapse to a back step, properties collapse to what is filled', async () => {
+  await b.navigate(`${base}#/p/r_evt_gates_solace`);
+  const crumbs = await b.evaluate(`(() => {
+    const vis = [...document.querySelectorAll('.topbar__crumbs .crumb')].filter(c => getComputedStyle(c).display !== 'none');
+    return { count: vis.length, back: vis.some(c => c.classList.contains('crumb--back')), current: vis[vis.length - 1].textContent.trim() };
+  })()`);
+  assert(crumbs.count === 2 && crumbs.back, `expected back + current, got ${JSON.stringify(crumbs)}`);
+  assert(crumbs.current.includes('Gates of Solace'), `current crumb is "${crumbs.current}"`);
+  const rowsBefore = await b.evaluate(`document.querySelectorAll('.props__row').length`);
+  const total = await store(`s.db('db_events').schema.length`);
+  assert(rowsBefore < total, `properties not collapsed (${rowsBefore} of ${total})`);
+  await b.evaluate(`document.querySelector('.props__more').click()`);
+  assert(await b.waitFor(`document.querySelectorAll('.props__row').length === ${total}`), 'Show all properties did not expand');
+});
+
+await step('mobile: the block menu button replaces the drag handle', async () => {
+  await b.navigate(`${base}#/p/${pageId}`);
+  assert(await b.evaluate(`getComputedStyle(document.querySelector('.blk__gutter')).display === 'none'`), 'drag handle should be hidden on touch');
+  await b.click('.blk .blk__text');
+  assert(await b.waitFor(`!!document.querySelector('.blk.is-active .blk__menu-touch')`), 'no block menu button on the focused block');
+  await b.evaluate(`document.querySelector('.blk.is-active .blk__menu-touch').click()`);
+  assert(await b.waitFor(`[...document.querySelectorAll('.menu__item')].some(x => x.textContent.includes('Move down'))`), 'block menu did not open');
+  await b.key('Escape', { vk: 27 });
+});
+
 await step('everything persisted to localStorage and reloads', async () => {
   await b.evaluate(`window.recamp.store.flushNow()`);
   const before = await b.evaluate(`({ bytes: localStorage.getItem('recamp.workspace.v1')?.length || 0, title: window.recamp.store.node(${S(pageId)})?.title, events: window.recamp.store.records('db_events').map(r => r.title) })`);
-  await b.setViewport(1440, 900, false);
+  await b.setViewport(1440, 900);
   await b.navigate(`${base}#/`);
   const after = await b.evaluate(`({ seeded: !!window.recamp.store._seeded, bytes: localStorage.getItem('recamp.workspace.v1')?.length || 0, title: window.recamp.store.node(${S(pageId)})?.title, events: window.recamp.store.records('db_events').map(r => r.title) })`);
   assert(after.title === 'Test Page' && after.events.includes('Test Event'), 'data lost on reload: before=' + JSON.stringify(before) + ' after=' + JSON.stringify(after));

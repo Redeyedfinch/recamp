@@ -57,8 +57,8 @@ client can't resurrect an emptied page.
 ## Layout
 
 ```
-web/css/     tokens → base → layout → components → editor → views → celestial
-web/js/core  id, order (fractional), dates, icons, dom (h() hyperscript)
+web/css/     tokens → base → layout → components → editor → views → celestial → mobile
+web/js/core  id, order (fractional), dates, icons, dom (h()), viewport (isPhone)
 web/js/data  schema, seed (provenance!), store, adapters/
 web/js/editor  block editor, katex loader
 web/js/ui    shell, sidebar, palette, menu, dialog, toast, starfield, plate, props
@@ -97,6 +97,15 @@ Run `npm test` and `node build/e2e.mjs` before committing UI changes.
   resolves, and assertions race.
 - **`localStorage` is per-origin and per-device.** Two devices on the same URL
   hold two separate workspaces; only a connected Sheet syncs them.
+- **CDP `mobile: true` lays out at 2× the window width** (it skips viewport-meta
+  handling without a mobile UA), so mobile screenshots silently showed an 840px
+  layout in a 420px frame. `build/cdp.mjs` keeps metrics non-mobile and emulates
+  touch separately; `window.innerWidth` must equal the requested width.
+- **A transform still creates scroll overflow.** The closed peek panel sits at
+  `translateX(100%)`, which gave every page a phantom sideways scroll until
+  `.main` got `overflow: hidden`.
+- **`celestial.css` loads after `views.css`**, so an equal-specificity rule there
+  (`.arc { display: block }`) beats one in views.css. `mobile.css` is last.
 - **The Apps Script API refuses everything but `ping`** until someone runs
   `setup()` in the editor, which mints the access token. That is a manual step
   and is still outstanding.

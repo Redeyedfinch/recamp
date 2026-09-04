@@ -46,8 +46,15 @@ export async function launch({ width = 1440, height = 900, mobile = false, profi
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
   const cdp = (method, params) => send(method, params, sessionId);
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile });
-  if (mobile) await cdp('Emulation.setTouchEmulationEnabled', { enabled: true });
+  // `mobile: true` makes headless Chrome lay out at 2× the window width (it skips
+  // viewport-meta handling without a mobile UA), so a 420px capture silently showed
+  // an 840px layout. Metrics stay non-mobile for true CSS pixels; touch is emulated
+  // separately, which is what actually matters for tap targets and drag.
+  await cdp('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+  if (mobile) {
+    await cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await cdp('Emulation.setEmitTouchEventsForMouse', { enabled: true, configuration: 'mobile' }).catch(() => {});
+  }
   const errors = [];
   listeners.push(m => {
     if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
@@ -80,5 +87,5 @@ export async function launch({ width = 1440, height = 900, mobile = false, profi
   let nav = 0;
   const navigate = async url => { const u = url.includes('?') ? url.replace(/(\?[^#]*)/, `$1&n=${++nav}`) : url.replace(/(#|$)/, `?n=${++nav}$1`); await cdp('Page.navigate', { url: u }); await ready(); };
   const close = () => { try { ws.close(); } catch { /* */ } proc.kill(); };
-  return { cdp, evaluate, waitFor, ready, key, type, click, screenshot, navigate, sleep, errors, close, setViewport: (w, h, m = false) => cdp('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: m }) };
+  return { cdp, evaluate, waitFor, ready, key, type, click, screenshot, navigate, sleep, errors, close, setViewport: (w, h) => cdp('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false }) };
 }

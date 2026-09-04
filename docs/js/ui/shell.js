@@ -20,7 +20,7 @@ export function mountShell(ctx, root) {
   const content = h('div.content', { id: 'content', tabindex: '-1' });
   const peekBody = h('div.peek__body');
   const peekBar = h('div.peek__bar');
-  const peek = h('aside.peek', { 'aria-label': 'Record preview' }, peekBar, peekBody);
+  const peek = h('aside.peek', { 'aria-label': 'Record preview', 'aria-hidden': 'true' }, peekBar, peekBody);
   const main = h('section.main', topbar, content, peek);
   const scrim = h('div.scrim', { onclick: () => shell.toggleSidebar(false) });
   const mobilebar = h('nav.mobilebar', { 'aria-label': 'Quick navigation' },
@@ -32,6 +32,10 @@ export function mountShell(ctx, root) {
     content,
     setTopbar({ crumbs: cs = [], actions: acts = [], meta: m = null } = {}) {
       clear(crumbs);
+      // A phone shows one step back plus where you are; the full trail is
+      // hidden in CSS, so four crumbs truncated to "Wo… / E… / NEX…" never appear.
+      const parent = cs[cs.length - 2];
+      if (parent?.href) crumbs.append(h('a.crumb.crumb--back', { href: parent.href, 'aria-label': `Back to ${parent.title}` }, icon('chevronL', 'icon')));
       cs.forEach((c, i) => {
         if (i) crumbs.append(h('span.crumb__sep', '/'));
         crumbs.append(h(c.href ? 'a.crumb' : 'span.crumb', { href: c.href || null, 'aria-current': i === cs.length - 1 ? 'page' : null }, c.icon ? icon(c.icon, 'icon') : null, h('span.truncate', c.title)));
@@ -54,10 +58,10 @@ export function mountShell(ctx, root) {
         h('span.grow'),
         h('button.iconbtn', { type: 'button', 'aria-label': 'Favorite', 'aria-pressed': String(store.isFavorite(nodeId)), onclick: e => { store.toggleFavorite(nodeId); e.currentTarget.setAttribute('aria-pressed', String(store.isFavorite(nodeId))); } }, icon(store.isFavorite(nodeId) ? 'starFill' : 'star')));
       peekView = mountPage(ctx, peekBody, nodeId, { peek: true });
-      main.dataset.peek = 'open'; peek.classList.add('is-open');
+      main.dataset.peek = 'open'; peek.classList.add('is-open'); peek.setAttribute('aria-hidden', 'false');
       setTimeout(() => peekBody.querySelector('.page__title')?.focus?.(), 50);
     },
-    closePeek() { if (!peek.classList.contains('is-open')) return; peek.classList.remove('is-open'); delete main.dataset.peek; peekView?.destroy?.(); peekView = null; setTimeout(() => { if (!peek.classList.contains('is-open')) clear(peekBody); }, 450); },
+    closePeek() { if (!peek.classList.contains('is-open')) return; peek.classList.remove('is-open'); peek.setAttribute('aria-hidden', 'true'); delete main.dataset.peek; peekView?.destroy?.(); peekView = null; setTimeout(() => { if (!peek.classList.contains('is-open')) clear(peekBody); }, 450); },
     get peekOpen() { return peek.classList.contains('is-open'); },
     refresh() { sidebar.refresh(); },
     focusContent() { content.focus({ preventScroll: true }); },

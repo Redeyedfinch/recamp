@@ -111,6 +111,11 @@
   min-width: 0;
   background: var(--bg-surface);
   position: relative;
+  /* The closed peek is parked at translateX(100%), and a transform still adds
+     scrollable overflow — without this every page could be panned sideways by
+     the width of the panel. Menus and dialogs live on <body>, so nothing that
+     should escape is clipped. */
+  overflow: hidden;
 }
 
 .topbar {
@@ -132,6 +137,9 @@
 .crumb:hover { background: var(--bg-hover); color: var(--text-primary); text-decoration: none; }
 .crumb[aria-current='page'] { color: var(--text-primary); }
 .crumb__sep { color: var(--text-ghost); font-family: var(--font-mono); font-size: 11px; padding: 0 2px; }
+/* The back step is a phone affordance; on desktop the full trail already
+   carries every ancestor, so it would only add noise. (mobile.css shows it.) */
+.crumb--back { display: none; }
 .topbar__meta { color: var(--text-ghost); font-family: var(--font-mono); font-size: var(--fs-label); letter-spacing: .06em; white-space: nowrap; }
 .topbar__actions { display: flex; align-items: center; gap: 2px; flex: none; }
 
