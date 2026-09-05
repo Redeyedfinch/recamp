@@ -13,28 +13,93 @@ It answers `ping` already. It refuses `load`/`save` until `setup()` has been
 run once in the editor (`clasp open-script`), which creates the data
 spreadsheet and prints the access token to paste into **Settings → Storage**.
 
-## Deploy (once)
+## Authorise it (once) — the only manual step
+
+The project is already created, pushed and deployed. What remains is granting
+it permission to touch your Drive and send mail as you. Google will not let a
+script do either until you agree in person, which is why this one step cannot
+be scripted.
+
+**1. Open the editor**
 
 ```powershell
 cd apps\api
-clasp login                     # the Google account that should OWN the data
-clasp create --type webapp --title "RECAMP Observatory API"
-clasp push
+clasp open-script
 ```
 
-Then in the Apps Script editor (`clasp open-script`):
+Or go straight there:
+<https://script.google.com/d/1FQ7e47hqaIMq91JkUPfZ0VI1DcPOzhEjgtDSJRYjjmfD7_07gGfQl6e9/edit>
 
-1. Run **`setup`** once. Authorise when asked. Open *Executions → logs*: it
-   prints the spreadsheet URL and an **access token**.
-2. **Deploy → New deployment → Web app**, execute as *Me*, access *Anyone*.
-   Copy the `/exec` URL.
-3. In the workspace: **Settings → Storage**, paste the URL and the token, and
-   choose *Connect*. The local workspace is merged into the Sheet and stays in
-   sync from then on.
+Check the account chip in the top right is the one that should **own the
+forum's data** — whatever the script creates lives in that account's Drive.
 
-Redeploy after code changes with `clasp push` then
-`clasp create-deployment -i <DEPLOYMENT_ID> -d "what changed"` — reusing the
-deployment id keeps the `/exec` URL stable.
+**2. Run `setup`**
+
+In the toolbar there is a function dropdown (it will show `doGet` or similar).
+Choose **`setup`**, then press **Run**.
+
+**3. Get past the consent screens**
+
+- *"Authorization required"* → **Review permissions**, then choose your account.
+- *"Google hasn't verified this app"* → expected, not a problem. The script is
+  yours and unpublished, so it has no verified consent screen. Click
+  **Advanced**, then **Go to RECAMP Observatory API (unsafe)**. It is your own
+  code; "unsafe" here only means Google has not reviewed it.
+- **Allow**. You are granting:
+  - *see, edit, create and delete your spreadsheets* — it creates and maintains
+    the data Sheet
+  - *send email as you* — announcements go out from your address
+  - *manage this script's deployment* — it reads its own `/exec` URL to build
+    unsubscribe links
+
+If you would rather not grant Gmail access at all, delete `Mail.js`, run
+`clasp push`, and re-run `setup`. Everything except announcements still works.
+
+**4. Copy the token**
+
+When it finishes, the **Execution log** panel at the bottom prints:
+
+```
+Spreadsheet: https://docs.google.com/spreadsheets/d/…
+Access token: 3f9c…
+```
+
+That token is the API key for this backend — treat it like a password. Anyone
+with it *and* the `/exec` URL can read and write the whole workspace.
+
+**5. Connect the workspace**
+
+In RECAMP → **Settings → Storage**, paste:
+
+- **URL** — the `/exec` address at the top of this file
+- **Access token** — the one from the log
+
+then press **Connect**. Your local workspace merges into the Sheet and the
+status line changes from *Stored in this browser only* to *Synced*.
+
+Use the same two values on any other device and they share one workspace.
+
+### If it goes wrong
+
+| What you see | What it means |
+| --- | --- |
+| `Run setup() first` | `setup` did not complete — re-run it and look for a red error in the log |
+| `Not authorised` | Wrong or missing token. Re-run `setup`; it reprints the existing token rather than minting a new one |
+| A sign-in page instead of JSON | Deployment access is not *Anyone*: **Deploy → Manage deployments → edit → Who has access → Anyone** |
+| Mail fails with a permission error | `Mail.js` arrived after you authorised. Re-run `setup` to trigger the new consent prompt |
+
+`rotateToken()` issues a new token and invalidates the old one — run it if the
+token ever leaks, then update Settings on every device.
+
+### Redeploying after code changes
+
+```powershell
+clasp push
+clasp create-deployment -i AKfycby_1eOOY8-o2asQIVJsseln06-BQkyr1YNyoODKNp4rg28uqQ0ka5Q5j7BpffYZRFalUw -d "what changed"
+```
+
+Reusing that deployment id keeps the `/exec` URL stable, so nobody has to
+re-paste anything.
 
 ## Security model
 
