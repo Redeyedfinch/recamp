@@ -524,6 +524,15 @@ export function mergeSeed(snap, seed) {
   const out = normalise(snap);
   for (const [id, n] of Object.entries(seed.nodes)) if (!out.nodes[id]) out.nodes[id] = n;
   for (const [id, b] of Object.entries(seed.blocks)) if (!out.blocks[id] && out.nodes[b.nodeId]) out.blocks[id] = b;
+  // A seeded database that already exists keeps the user's schema, but gains
+  // properties added to the definition since (Members got Email + Subscribed).
+  // Only runs on a version upgrade, so a property someone deleted stays deleted.
+  for (const [id, seeded] of Object.entries(seed.nodes)) {
+    if (seeded.kind !== 'database') continue;
+    const mine = out.nodes[id];
+    if (!mine || mine === seeded || !Array.isArray(mine.schema)) continue;
+    for (const p of seeded.schema) if (!mine.schema.some(x => x.id === p.id)) { mine.schema.push(JSON.parse(JSON.stringify(p))); mine.updatedAt = new Date().toISOString(); }
+  }
   out.meta.seedVersion = seed.meta.seedVersion;
   return out;
 }

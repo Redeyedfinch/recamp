@@ -53,6 +53,44 @@ export function mount(ctx, host) {
       h('div.field', h('span.label', 'Access token'), token, h('span.field__hint', 'Deploy apps/api, run setup() once, copy the token from the log. See apps/api/README.md.')),
       h('div.row', connect, disconnect)));
 
+    /* mail */
+    const members = store.records('db_members');
+    const mailable = members.filter(m => String(m.props.email || '').trim() && m.props.subscribed === true).length;
+    const withAddress = members.filter(m => String(m.props.email || '').trim()).length;
+    const fromName = h('input.input', { type: 'text', value: store.setting('mailFromName', store.meta.workspace?.name || 'RECAMP'), placeholder: 'RECAMP', onchange: () => store.setSetting('mailFromName', fromName.value.trim()) });
+    const replyTo = h('input.input', { type: 'email', value: store.setting('mailReplyTo', ''), placeholder: 'committee@example.com', onchange: () => store.setSetting('mailReplyTo', replyTo.value.trim()) });
+    const footer = h('input.input', { type: 'text', value: store.setting('mailFooter', ''), placeholder: 'e.g. RECAMP · School of Sciences, Jain (Deemed-to-be University)', onchange: () => store.setSetting('mailFooter', footer.value.trim()) });
+    const mailStatus = h('div.settings__status',
+      h('div.status', h('span.node', { 'data-tone': mailable ? 'sage' : 'stellar' }), `${mailable} of ${members.length} members can be emailed`),
+      h('span', withAddress > mailable
+        ? `${withAddress - mailable} ${withAddress - mailable === 1 ? 'has an address but has' : 'have addresses but have'} not ticked Subscribed, so they are never mailed.`
+        : 'A member is mailable only with an address and Subscribed ticked.'),
+      cloud ? null : h('span', 'Sending needs the Apps Script backend — connect it above.'));
+    view.append(section('Email', 'Announcements go out through the Apps Script deployment, using the Google account that owns it. Consent is checked again on the server, and every send is logged to the Sheet.',
+      mailStatus,
+      h('div.field', h('span.label', 'Sender name'), fromName),
+      h('div.field', h('span.label', 'Reply-to address'), replyTo, h('span.field__hint', 'Where replies land. Leave blank to use the sending account.')),
+      h('div.field', h('span.label', 'Footer line'), footer, h('span.field__hint', 'Appears above the unsubscribe link in every message.')),
+      h('div.row', { style: { flexWrap: 'wrap' } },
+        h('a.btn', { href: '#/db/db_announcements' }, icon('signal'), 'Announcements'),
+        h('button.btn', { type: 'button', disabled: !cloud, onclick: async () => {
+          try { const q = await store.cloud.mailQuota(); ctx.toast(`${q.remaining} messages left in today's quota.`); }
+          catch (e) { ctx.toast(`Could not read the quota — ${e.message}`); }
+        } }, icon('signal'), 'Check quota'),
+        h('button.btn', { type: 'button', disabled: !cloud, onclick: async () => {
+          try {
+            const r = await store.cloud.mailLog(50);
+            const list = r.entries || [];
+            const { dialog: dlg } = await import('../ui/dialog.js');
+            dlg({ title: 'Sending log', wide: true, body: list.length
+              ? h('div.list', list.map(e => h('div.list__row', { style: { gridTemplateColumns: '1fr auto' } },
+                  h('div', h('div.list__title', e.subject || '(no subject)'), h('div.list__sub', `${e.email} · ${e.status}${e.error ? ` — ${e.error}` : ''}`)),
+                  h('span.coord', fmtStamp(e.at).toUpperCase()))))
+              : 'Nothing has been sent yet.', actions: [{ label: 'Close', primary: true }] });
+          } catch (e) { ctx.toast(`Could not read the log — ${e.message}`); }
+        } }, icon('archive'), 'Sending log')),
+      h('p.t-faint', { style: { fontSize: 'var(--fs-small)' } }, 'Addresses are personal data under the DPDP Act 2023. Collect them with consent, keep them only while the member is in the forum, and remove anyone who asks — the unsubscribe link in every message does it automatically.')));
+
     /* data */
     const file = h('input', { type: 'file', accept: 'application/json', hidden: true, onchange: async () => { const f = file.files[0]; if (!f) return; try { const snap = JSON.parse(await f.text()); if (!snap.nodes) throw new Error('not a workspace file'); if (await confirm({ title: 'Import workspace?', message: 'Records in the file merge with what is here; the newer version of each record wins.', confirmLabel: 'Import' })) { const { mergeSnapshots } = await import('../data/store.js'); store.hydrate(mergeSnapshots(store.snapshot(), snap)); store.persist(); ctx.toast('Workspace imported'); } } catch (e) { ctx.toast(`Could not import: ${e.message}`); } file.value = ''; } });
     const counts = { nodes: store.allNodes().length, blocks: Object.values(store.state.blocks).filter(b => !b.deleted).length, activity: store.state.activity.length };

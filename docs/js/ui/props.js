@@ -63,6 +63,18 @@ export function propValue(ctx, node, prop, { editable = true, compact = false } 
       const input = h('input', { type: 'number', value: value ?? '', placeholder: EMPTY, onchange: () => set(input.value === '' ? '' : Number(input.value)), onkeydown: e => { if (e.key === 'Enter') input.blur(); e.stopPropagation(); } });
       return pv('', input);
     }
+    case 'email': {
+      const val = String(value || '').trim();
+      const bad = val && !/^[^\s@,;]+@[^\s@,;.]+(\.[^\s@,;.]+)+$/.test(val);
+      if (!editable) return pv('pv--static', val ? h('a.pv__link', { href: `mailto:${val}` }, val) : h('span.pv--empty', EMPTY));
+      const t = h('div.pv__text', { contenteditable: 'true', spellcheck: 'false', inputmode: 'email', 'data-placeholder': compact ? EMPTY : 'name@example.com', 'data-empty': String(!val) }, val);
+      const el = pv(bad ? 'pv--invalid' : '', t, bad ? h('span.pv__warn', { title: 'This does not look like an email address' }, '!') : null);
+      el.onclick = e => { e.stopPropagation(); t.focus(); };
+      t.oninput = () => { t.dataset.empty = String(!t.textContent.trim()); };
+      t.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); t.blur(); } if (e.key === 'Escape') { t.textContent = val; t.blur(); } e.stopPropagation(); };
+      t.onblur = () => { const v = t.textContent.trim().toLowerCase(); if (v !== val) set(v); };
+      return el;
+    }
     case 'url': {
       const link = value ? h('a.pv__link', { href: value, target: '_blank', rel: 'noopener', onclick: e => e.stopPropagation() }, value.replace(/^https?:\/\//, '')) : null;
       if (!editable) return pv('pv--static', link || h('span.pv--empty', EMPTY));

@@ -266,6 +266,63 @@ await step('mobile: the block menu button replaces the drag handle', async () =>
   await b.key('Escape', { vk: 27 });
 });
 
+await step('mail: consent gates the recipient list, and sending is refused without a backend', async () => {
+  await b.setViewport(1440, 900);
+  await b.navigate(`${base}#/p/r_ann_1`);
+  // Nobody is mailable out of the box: the seed ships no addresses and no consent.
+  let counts = await b.evaluate(`(() => { const m = window.recamp.store.records('db_members'); return { total: m.length, mailable: m.filter(x => x.props.email && x.props.subscribed === true).length }; })()`);
+  assert(counts.mailable === 0, 'seed must not ship subscribed members');
+
+  await b.click('.page__tools .btn--primary');
+  assert(await b.waitFor(`!!document.querySelector('.compose')`), 'compose did not open');
+  let dlg = await b.evaluate(`(() => ({ count: document.querySelector('.compose__count').textContent, warn: document.querySelector('.compose__warn')?.textContent || '', skipped: document.querySelector('.compose__skipped summary')?.textContent || '' }))()`);
+  assert(/Nobody can be mailed/.test(dlg.count), `expected nobody mailable, got "${dlg.count}"`);
+  assert(/No backend connected/.test(dlg.warn), 'should say the backend is not connected');
+  assert(/will not receive/.test(dlg.skipped), 'should list who is excluded');
+
+  // Pressing Send must refuse rather than pretend.
+  await b.evaluate(`[...document.querySelectorAll('.dialog__foot .btn')].find(x => x.textContent.startsWith('Send')).click()`);
+  assert(await b.waitFor(`!!document.querySelector('.toast')`), 'no explanation toast');
+  assert(await b.evaluate(`/Connect a backend|No recipient/.test(document.querySelector('.toast').textContent)`), 'refusal should explain why');
+  assert(await b.evaluate(`!!document.querySelector('.compose')`), 'dialog should stay open after a refused send');
+  await b.key('Escape', { vk: 27 });
+
+  // Give one member an address and consent, and one an address without consent.
+  await b.evaluate(`(() => { const s = window.recamp.store, m = s.records('db_members');
+    s.setProp(m[0].id, 'email', 'yes@example.com'); s.setProp(m[0].id, 'subscribed', true);
+    s.setProp(m[1].id, 'email', 'no@example.com'); s.setProp(m[1].id, 'subscribed', false); })()`);
+  await b.click('.page__tools .btn--primary');
+  assert(await b.waitFor(`!!document.querySelector('.compose')`), 'compose did not reopen');
+  dlg = await b.evaluate(`(() => ({ count: document.querySelector('.compose__count').textContent, skipped: document.querySelector('.compose__skipped').textContent, btn: [...document.querySelectorAll('.dialog__foot .btn')].map(x => x.textContent).join('|') }))()`);
+  assert(/^1 recipient/.test(dlg.count), `expected exactly 1 recipient, got "${dlg.count}"`);
+  assert(/not subscribed/.test(dlg.skipped), 'the unsubscribed member should be listed as excluded');
+  assert(/Send to 1/.test(dlg.btn), `the count belongs in the button, got "${dlg.btn}"`);
+  await b.key('Escape', { vk: 27 });
+});
+
+await step('mail: the preview renders the message with per-recipient placeholders', async () => {
+  const msg = await b.evaluate(`(async () => {
+    const { buildMessage } = await import('./js/ui/compose.js');
+    const m = buildMessage(window.recamp.store, window.recamp.store.node('r_ann_1'));
+    return { html: m.html.length, hasName: m.html.includes('{{FIRST_NAME}}'), hasUnsub: m.html.includes('{{UNSUB_URL}}'),
+             previewClean: !m.previewHtml.includes('{{'), noScript: !/<script/i.test(m.html), text: m.text.includes('Unsubscribe:') };
+  })()`);
+  assert(msg.hasName && msg.hasUnsub, 'placeholders missing from the sent HTML');
+  assert(msg.previewClean, 'the preview must not show raw placeholders');
+  assert(msg.noScript, 'email HTML must contain no scripts');
+  assert(msg.text, 'plain-text alternative missing its unsubscribe line');
+});
+
+await step('mail: an event can raise a linked announcement draft', async () => {
+  await b.navigate(`${base}#/p/r_evt_gates_solace`);
+  await b.evaluate(`[...document.querySelectorAll('.page__tools .btn')].find(x => x.textContent.includes('Email members')).click()`);
+  assert(await b.waitFor(`location.hash.startsWith('#/p/') && window.recamp.store.node(location.hash.slice(4))?.databaseId === 'db_announcements'`), 'no draft created');
+  const draft = await b.evaluate(`(() => { const n = window.recamp.store.node(location.hash.slice(4)); return { status: n.props.status, event: n.props.event?.[0], subject: n.props.subject }; })()`);
+  assert(draft.status === 'Draft', 'a new announcement must start as a Draft');
+  assert(draft.event === 'r_evt_gates_solace', 'draft is not linked to the event');
+  assert(/Gates of Solace/.test(draft.subject), `subject not prefilled: "${draft.subject}"`);
+});
+
 await step('everything persisted to localStorage and reloads', async () => {
   await b.evaluate(`window.recamp.store.flushNow()`);
   const before = await b.evaluate(`({ bytes: localStorage.getItem('recamp.workspace.v1')?.length || 0, title: window.recamp.store.node(${S(pageId)})?.title, events: window.recamp.store.records('db_events').map(r => r.title) })`);

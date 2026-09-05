@@ -42,7 +42,7 @@ export function mountSidebar(ctx, host) {
       dbItem('db_resources', 'book'), dbItem('db_research', 'flask'), dbItem('db_meetings', 'notes'),
     ]));
     scroll.append(section('Operations', null, [
-      dbItem('db_events', 'calendar'), dbItem('db_projects', 'compass'), dbItem('db_tasks', 'task', openTasks || null), dbItem('db_teams', 'users'),
+      dbItem('db_events', 'calendar'), dbItem('db_projects', 'compass'), dbItem('db_tasks', 'task', openTasks || null), dbItem('db_teams', 'users'), dbItem('db_announcements', 'signal'),
     ]));
     scroll.append(section('People', null, [
       item({ label: 'Members', icon: 'user', to: href.members(), current: route.name === 'members' }),

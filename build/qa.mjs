@@ -27,11 +27,11 @@ const routes = [
   ['enter', '#/enter'], ['home', '#/'], ['about', '#/p/p_about'], ['events-table', '#/db/db_events'], ['events-board', '#/db/db_events?v=v_board'],
   ['events-calendar', '#/db/db_events?v=v_cal'], ['events-timeline', '#/db/db_events?v=v_timeline'], ['events-gallery', '#/db/db_events?v=v_gallery'],
   ['gates', '#/p/r_evt_gates_solace'], ['archive', '#/archive'], ['tasks-board', '#/db/db_tasks'], ['members', '#/members'], ['research', '#/db/db_research'],
-  ['experiment-log', '#/p/r_rsn_3'], ['activity', '#/activity'], ['inbox', '#/inbox'], ['settings', '#/settings'], ['search', '#/search?q=solace'], ['trash', '#/trash'], ['guide', '#/p/p_guide'],
+  ['experiment-log', '#/p/r_rsn_3'], ['activity', '#/activity'], ['inbox', '#/inbox'], ['settings', '#/settings'], ['search', '#/search?q=solace'], ['trash', '#/trash'], ['guide', '#/p/p_guide'], ['announcements', '#/db/db_announcements'], ['announce-draft', '#/p/r_ann_1'],
 ].filter(([n]) => !only || only.includes(n));
 
 // what each route's document.title must contain once its own view has rendered
-const expectTitle = { enter: 'Observatory', home: 'Observatory', about: 'About RECAMP', gates: 'Gates of Solace', archive: 'Archive', 'tasks-board': 'Tasks', members: 'Members', research: 'Research', 'experiment-log': 'Experiment log', activity: 'Activity', inbox: 'Inbox', settings: 'Settings', search: 'Search', trash: 'Trash', guide: 'Workspace guide' };
+const expectTitle = { announcements: 'Announcements', 'announce-draft': 'Draft', enter: 'Observatory', home: 'Observatory', about: 'About RECAMP', gates: 'Gates of Solace', archive: 'Archive', 'tasks-board': 'Tasks', members: 'Members', research: 'Research', 'experiment-log': 'Experiment log', activity: 'Activity', inbox: 'Inbox', settings: 'Settings', search: 'Search', trash: 'Trash', guide: 'Workspace guide' };
 
 let failures = 0;
 for (const [name, hash] of routes) {

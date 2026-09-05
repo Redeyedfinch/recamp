@@ -39,5 +39,11 @@ export class CloudAdapter {
     try { const r = await this.call('ping'); return !!r.ok; } catch { return false; }
   }
 
+  /* ---- mail (apps/api/Mail.js) ---- */
+  mailQuota() { return this.call('mail.quota'); }
+  mailVerify(recipients) { return this.call('mail.verify', { recipients }); }
+  mailSend(payload) { return this.call('mail.send', payload); }
+  mailLog(limit = 100) { return this.call('mail.log', { limit }); }
+
   async clear() { /* never remotely */ }
 }

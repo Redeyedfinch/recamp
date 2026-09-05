@@ -17,7 +17,7 @@
 import { DATABASES } from './schema.js';
 import { initialKeys } from '../core/order.js';
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 const T0 = '2026-09-01T09:00:00.000Z';   // seed timestamp; edits after this win merges
 
 const nodes = {}; const blocks = {};
@@ -174,8 +174,8 @@ export function buildSeed() {
   const mk = initialKeys(6);
   for (let i = 1; i <= 6; i++) {
     rec('db_members', `r_mbr_${i}`, { title: `Member placeholder ${String(i).padStart(2, '0')}`, order: mk[i - 1], provenance: 'demo', icon: 'user',
-      props: { role: '', team: [], year: '', department: 'Physical Sciences', skills: [], bio: 'Placeholder profile. Replace with a real member once they have agreed to be listed.', joined: '' } });
-    addBlocks(`r_mbr_${i}`, [CALL('Placeholder profile — no real person is represented here.', 'stellar')]);
+      props: { role: '', team: [], year: '', department: 'Physical Sciences', skills: [], bio: 'Placeholder profile. Replace with a real member once they have agreed to be listed.', joined: '', email: '', subscribed: false } });
+    addBlocks(`r_mbr_${i}`, [CALL('Placeholder profile — no real person is represented here. Add an address only with the member&rsquo;s agreement, and tick <b>Subscribed</b> only if they have said yes to email.', 'stellar')]);
   }
 
   /* ---------------------------------------------------------- Resources (demo, real links) */
@@ -200,6 +200,17 @@ export function buildSeed() {
   rec('db_research', 'r_rsn_3', { title: 'Experiment log — pendulum period vs. amplitude', order: rk2[2], provenance: 'demo', icon: 'flask', props: { kind: 'Experiment Log', area: 'Physics', tags: ['Mechanics', 'Lab'], author: [], source: '' } });
   addBlocks('r_rsn_3', [CALL('Sample experiment log.', 'stellar'), H2('Objective'), P('Measure how the period of a simple pendulum departs from the small-angle result as amplitude grows.'), H2('Setup'), P('String length L, bob mass m, release angles 5°–60°, stopwatch over 10 oscillations.'), H2('Result'), ['equation', 'T \\approx 2\\pi\\sqrt{\\frac{L}{g}}\\left(1 + \\frac{\\theta_0^2}{16}\\right)'], H2('Observations'), ['table', '', { rows: [['θ₀ (deg)', 'T (s)', 'Notes'], ['5', '', ''], ['20', '', ''], ['40', '', ''], ['60', '', '']] }]]);
   nodes.db_research.schema.find(p => p.id === 'tags').options = ['Lunar', 'Missions', 'Human spaceflight', 'Mechanics', 'Lab'].map(name => ({ name, tone: 'faint' }));
+
+  /* ---------------------------------------------------------- Announcements */
+  rec('db_announcements', 'r_ann_1', { title: 'Draft — event announcement', order: 'V', provenance: 'demo', icon: 'signal',
+    props: { status: 'Draft', kind: 'Event', subject: '', intro: '', audience: 'All subscribed members', team: [], people: [], event: [], sent_at: '', sent_count: '' } });
+  addBlocks('r_ann_1', [
+    CALL('A starting draft. Nothing is sent until someone presses Send, and then only to members who have an address and have ticked <b>Subscribed</b>.', 'stellar'),
+    P('Write the message here. Everything below the properties becomes the body of the email.'),
+    H2('What, when, where'), B(''), B(''),
+    H2('What to bring'), P(''),
+    H2('Questions'), P('Reply to this email, or message the committee.'),
+  ]);
 
   /* ------------------------------------------------------------ Meeting notes (demo) */
   rec('db_meetings', 'r_mtg_1', { title: 'Sample — planning meeting', order: 'V', provenance: 'demo', icon: 'notes', props: { date: '', time: '', venue: '', kind: 'Planning', attendees: [], event: [] } });

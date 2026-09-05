@@ -16,6 +16,7 @@ export function mountPalette(ctx) {
     { group: 'Create', label: 'New task', icon: 'task', kind: 'create', run: () => ctx.createRecord('db_tasks', { status: 'To do', done: false, priority: 'Medium' }) },
     { group: 'Create', label: 'New project', icon: 'compass', kind: 'create', run: () => ctx.createRecord('db_projects', { status: 'Proposed' }) },
     { group: 'Create', label: 'New meeting note', icon: 'notes', kind: 'create', run: () => ctx.createRecord('db_meetings', { kind: 'Planning' }, { template: 'p_tpl_meeting' }) },
+    { group: 'Create', label: 'New announcement', icon: 'signal', kind: 'create', run: () => ctx.createRecord('db_announcements', { status: 'Draft', kind: 'Announcement', audience: 'All subscribed members' }) },
     { group: 'Create', label: 'New resource', icon: 'book', kind: 'create', run: () => ctx.createRecord('db_resources', { type: 'Link' }) },
     { group: 'Create', label: 'New research note', icon: 'flask', kind: 'create', run: () => ctx.createRecord('db_research', { kind: 'Research Note' }) },
     { group: 'Go to', label: 'Home', icon: 'home', kind: 'go', run: () => router.go('/') },

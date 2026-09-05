@@ -51,6 +51,9 @@ export function mountPage(ctx, host, nodeId, { peek = false, focusTitle = false 
     const kicker = h('div.page__kicker', catalogueMark(store, node), provenanceMark(node), db ? h('a.label', { href: href.db(db.id) }, db.title.toUpperCase()) : (node.kind === 'page' ? h('span.label', 'PAGE') : null), isRecord && db?.id === 'db_events' && node.props.status === 'Completed' ? h('span.label.label--ink', 'RECAMP EVENT ARCHIVE') : null);
     head.append(kicker);
     const tools = h('div.page__tools',
+      // Contextual primary action: announcements are sent, events are announced.
+      db?.id === 'db_announcements' ? h('button.btn.btn--sm.btn--primary', { type: 'button', onclick: async () => { const { openCompose } = await import('../ui/compose.js'); openCompose(ctx, nodeId); } }, icon('inbox'), node.props?.status === 'Sent' ? 'Send again' : 'Send…') : null,
+      db?.id === 'db_events' ? h('button.btn.btn--sm', { type: 'button', onclick: async () => { const { announceEvent } = await import('../ui/compose.js'); announceEvent(ctx, node); } }, icon('inbox'), 'Email members') : null,
       !node.cover ? h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: () => store.updateNode(nodeId, { cover: { kind: 'plate' } }, { log: false }) }, icon('cover'), 'Add cover') : null,
       h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: () => store.toggleFavorite(nodeId) }, icon(store.isFavorite(nodeId) ? 'starFill' : 'star'), store.isFavorite(nodeId) ? 'Favorited' : 'Favorite'),
       h('button.btn.btn--ghost.btn--sm', { type: 'button', onclick: e => pageMenu(ctx, node, e.currentTarget) }, icon('more'), 'More'));
@@ -191,7 +194,7 @@ function backlinks(store, node) {
 }
 
 export function iconForType(type) {
-  return { text: 'text', select: 'circle', multiselect: 'bullets', date: 'calendar', time: 'clock', person: 'user', relation: 'link', checkbox: 'todo', url: 'arrowUR', number: 'sigma', files: 'paperclip', created: 'clock', updated: 'clock' }[type] || 'circle';
+  return { text: 'text', select: 'circle', multiselect: 'bullets', date: 'calendar', time: 'clock', person: 'user', relation: 'link', checkbox: 'todo', url: 'arrowUR', email: 'inbox', number: 'sigma', files: 'paperclip', created: 'clock', updated: 'clock' }[type] || 'circle';
 }
 
 function notFound(ctx, host, id) {

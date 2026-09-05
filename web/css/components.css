@@ -255,6 +255,24 @@
 .segmented button:hover { color: var(--text-primary); background: var(--bg-hover); }
 .segmented button[aria-pressed='true'] { color: var(--text-primary); background: var(--bg-active); }
 
+/* ---- compose (send an announcement) ----------------------------------- */
+.compose { display: grid; gap: var(--s4); }
+.compose__to { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--bg-raised); display: grid; gap: 8px; }
+.compose__count { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; color: var(--text-primary); }
+.compose__countsub { font-family: var(--font-sans); font-size: var(--fs-small); color: var(--text-faint); letter-spacing: 0; }
+.compose__chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.compose__skipped { border: 1px solid var(--line); border-radius: var(--radius-control); padding: 10px 12px; background: var(--bg-sunken); }
+.compose__skipped summary { cursor: pointer; font-size: var(--fs-small); color: var(--stellar); }
+.compose__skiplist { margin-top: 8px; display: grid; gap: 4px; font-size: var(--fs-small); color: var(--text-secondary); max-height: 150px; overflow-y: auto; }
+.compose__quota, .compose__warn { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius-control); font-size: var(--fs-ui); line-height: 1.5; border: 1px solid var(--line); background: var(--bg-raised); color: var(--text-secondary); }
+.compose__warn { border-color: var(--stellar-edge); background: var(--stellar-tint); color: var(--text-primary); }
+.compose__quota .icon, .compose__warn .icon { margin-top: 2px; color: var(--text-faint); }
+.compose__warn .icon { color: var(--stellar); }
+.compose__warn code { background: var(--bg-sunken); padding: 1px 5px; border-radius: 2px; }
+.compose__preview { width: 100%; height: 340px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: #e9e4da; }
+.pv--invalid .pv__text { color: var(--rust); }
+.pv__warn { color: var(--rust); font-weight: 600; cursor: help; }
+
 /* ---- progress rule: ticks filled, not a rounded bar ------------------- */
 .progress { display: flex; gap: 2px; height: 6px; }
 .progress i { flex: 1; background: var(--line-strong); }

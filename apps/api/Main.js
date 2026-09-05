@@ -25,7 +25,11 @@ var PROP_TOKEN     = 'RECAMP_TOKEN';
 
 /* ============================== web entry ============================== */
 
-function doGet() {
+function doGet(e) {
+  var p = (e && e.parameter) ? e.parameter : {};
+  // The one GET that does something: an unsubscribe link from an email. It is
+  // signed per member, so it needs no session and cannot be pointed at anyone else.
+  if (p.unsub) return handleUnsubscribe_(p.unsub, p.t);
   return json_({ ok: true, service: 'recamp-observatory', now: new Date().toISOString() });
 }
 
@@ -44,6 +48,7 @@ function doPost(e) {
     if (action === 'info') return json_(info_());
     if (action === 'load') return json_({ ok: true, snapshot: readSnapshot_() });
     if (action === 'save') return json_(save_(req.snapshot));
+    if (action.lastIndexOf('mail.', 0) === 0) return json_(mailApi_(action.substring(5), req));
     return json_({ ok: false, error: 'Unknown action' });
   } catch (err) {
     return json_({ ok: false, error: String(err && err.message || err) });
@@ -94,6 +99,7 @@ var SHEETS = {
   blocks:   ['id', 'nodeId', 'parentId', 'type', 'order', 'archived', 'deleted', 'createdAt', 'updatedAt', 'json'],
   activity: ['id', 'at', 'type', 'nodeId', 'title', 'detail', 'actor'],
   meta:     ['key', 'json'],
+  mail_log: ['at', 'announcementId', 'memberId', 'email', 'subject', 'status', 'error'],
 };
 
 function ss_() {
@@ -172,6 +178,8 @@ function writeSnapshot_(snap) {
   writeTable_(ss, 'nodes', nodeRows);
   writeTable_(ss, 'blocks', blockRows);
   writeTable_(ss, 'activity', (snap.activity || []).slice(0, 600));
+  // mail_log is append-only and owned by Mail.js — a snapshot write must never
+  // rewrite it, or the record of who was mailed would be lost on every save.
   writeTable_(ss, 'meta', [
     { key: 'savedAt', json: JSON.stringify(snap.savedAt) }, { key: 'meta', json: JSON.stringify(snap.meta || {}) },
     { key: 'settings', json: JSON.stringify(snap.settings || {}) }, { key: 'favorites', json: JSON.stringify(snap.favorites || []) },

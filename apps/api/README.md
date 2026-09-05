@@ -47,6 +47,38 @@ deployment id keeps the `/exec` URL stable.
   the Sheet; member details are personal data under India's DPDP Act 2023, so
   collect only what the forum actually needs.
 
+## Email
+
+`Mail.js` sends announcements through the deploying account's Gmail quota
+(`MailApp`). The frontend composes the message; this project decides who
+actually receives it.
+
+- **Consent is re-checked here.** The client sends a recipient list and every
+  address on it is verified against the Sheet again — member exists, address
+  matches, `subscribed === true`. A tampered or stale client cannot mail
+  someone who opted out.
+- **Messages go one at a time**, not as a BCC blast: each recipient is greeted
+  by name and gets their own signed unsubscribe link, and a BCC list is one
+  mistake away from leaking every member's address.
+- **Quota is checked before the first send.** If fewer messages remain than
+  there are recipients, nothing is sent at all rather than half a list.
+  `MailApp.getRemainingDailyQuota()` reports the real figure (consumer Gmail
+  accounts get far fewer per day than Workspace ones).
+- **Every send is logged** to the `mail_log` sheet — timestamp, announcement,
+  member, address, subject, status, error. Snapshot saves never rewrite it.
+- **Unsubscribe** is `GET /exec?unsub=<memberId>&t=<token>`, where the token is
+  an HMAC of the member id under a secret in Script Properties. It flips
+  `subscribed` to false in the Sheet and shows a plain confirmation page. The
+  next sync brings the change back to every client.
+
+Actions: `mail.quota`, `mail.verify` (dry run), `mail.send`, `mail.log`.
+
+**Not built on purpose:** nothing sends automatically. A time-driven trigger
+that mails members without anyone reading the message first is a bad trade for
+a small club on a small quota. If you want event reminders later, the safe
+shape is a daily trigger that *drafts* an announcement for the committee to
+review and send.
+
 ## Merge semantics
 
 `save` merges the incoming snapshot with what the Sheet holds, record by

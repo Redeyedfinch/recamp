@@ -16,6 +16,7 @@ export const PROP_TYPES = {
   person:      { label: 'Person' },        // relation → Members
   relation:    { label: 'Relation' },
   checkbox:    { label: 'Checkbox' },
+  email:       { label: 'Email' },
   url:         { label: 'URL' },
   number:      { label: 'Number' },
   files:       { label: 'Files' },
@@ -54,6 +55,12 @@ export const MEMBER_ROLE = [
 ];
 export const YEAR = [opt('I Year'), opt('II Year'), opt('III Year'), opt('IV Year'), opt('Postgraduate'), opt('Faculty')];
 export const MEETING_KIND = [opt('Core Committee', 'stellar'), opt('Planning', 'celestial'), opt('Review', 'sage'), opt('General Body', 'violet')];
+export const ANNOUNCE_STATUS = [opt('Draft', 'faint'), opt('Sending', 'stellar'), opt('Sent', 'sage'), opt('Failed', 'rust')];
+export const ANNOUNCE_KIND = [opt('Event', 'celestial'), opt('Announcement', 'violet'), opt('Reminder', 'stellar'), opt('Minutes', 'sage')];
+export const AUDIENCE_OPTIONS = [
+  opt('All subscribed members', 'celestial'), opt('Core Committee', 'stellar'),
+  opt('Coordinators', 'violet'), opt('A team', 'sage'), opt('Selected people', 'faint'),
+];
 
 export function toneOf(options, value) {
   return options?.find(o => o.name === value)?.tone || 'faint';
@@ -69,6 +76,7 @@ export const P = {
   person: (id, name, extra = {}) => ({ id, name, type: 'person', target: 'db_members', ...extra }),
   rel:    (id, name, target, extra = {}) => ({ id, name, type: 'relation', target, ...extra }),
   check:  (id, name, extra = {}) => ({ id, name, type: 'checkbox', ...extra }),
+  email:  (id, name, extra = {}) => ({ id, name, type: 'email', ...extra }),
   url:    (id, name, extra = {}) => ({ id, name, type: 'url', ...extra }),
   number: (id, name, extra = {}) => ({ id, name, type: 'number', ...extra }),
   files:  (id, name, extra = {}) => ({ id, name, type: 'files', ...extra }),
@@ -142,6 +150,9 @@ export const DATABASES = {
       P.select('role', 'Role', MEMBER_ROLE), P.rel('team', 'Team', 'db_teams'), P.select('year', 'Year', YEAR),
       P.text('department', 'Department'), P.multi('skills', 'Skills', []), P.text('bio', 'Bio', { long: true }),
       P.date('joined', 'Joined'), P.url('profile_image', 'Profile Image'),
+      // Mailing a member needs both: an address, and their consent to be mailed.
+      // Personal data under the DPDP Act 2023 — collect it only with agreement.
+      P.email('email', 'Email'), P.check('subscribed', 'Subscribed'),
     ],
     views: [view('v_gallery', 'Directory', 'gallery'), view('v_table', 'Table', 'table', { hidden: ['bio', 'profile_image'] }), view('v_board', 'By role', 'board', { groupBy: 'role' })],
   },
@@ -163,6 +174,22 @@ export const DATABASES = {
       P.rel('event', 'Linked Event', 'db_events'),
     ],
     views: [view('v_table', 'All notes', 'table', { sorts: [{ prop: 'date', dir: 'desc' }] }), view('v_cal', 'Calendar', 'calendar', { dateProp: 'date' })],
+  },
+  db_announcements: {
+    title: 'Announcements', icon: 'signal', catalogue: 'ANN',
+    description: 'Everything the forum has sent to its members, and the drafts it has not sent yet.',
+    schema: [
+      P.select('status', 'Status', ANNOUNCE_STATUS), P.select('kind', 'Kind', ANNOUNCE_KIND),
+      P.text('subject', 'Subject line'), P.text('intro', 'Opening line', { long: true }),
+      P.select('audience', 'Audience', AUDIENCE_OPTIONS),
+      P.rel('team', 'Team', 'db_teams'), P.rel('people', 'People', 'db_members', { many: true }),
+      P.rel('event', 'About event', 'db_events'),
+      P.date('sent_at', 'Sent'), P.number('sent_count', 'Recipients'), P.person('sent_by', 'Sent by'),
+    ],
+    views: [
+      view('v_table', 'All messages', 'table', { sorts: [{ prop: 'updated', dir: 'desc' }], hidden: ['intro', 'team', 'people', 'sent_by'] }),
+      view('v_board', 'By status', 'board', { groupBy: 'status' }),
+    ],
   },
   db_research: {
     title: 'Research', icon: 'flask', catalogue: 'RSN',

@@ -166,6 +166,10 @@
 .route__station:hover .route__remove { opacity: 1; }
 @media (max-width: 640px) { .route__station { grid-template-columns: 16px 1fr; } .route__label { grid-column: 2; } .route__title, .route__text { grid-column: 2; } }
 
+/* Touch-only block menu. The phone rules in mobile.css turn it on; on a
+   pointer device the gutter handle does this job, so it stays hidden. */
+.blk__menu-touch { display: none; }
+
 /* selection & drag ------------------------------------------------------ */
 .blk.is-selected > .blk__body { background: var(--bg-selected); box-shadow: 0 0 0 4px var(--bg-selected); border-radius: 2px; }
 .blk[data-dragover='before'] > .blk__body { box-shadow: 0 -2px 0 0 var(--celestial); }

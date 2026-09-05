@@ -100,6 +100,28 @@ block drag handle is replaced by a menu button, since HTML5 drag never fires on
 touch. `node build/qa.mjs --mobile` and the mobile steps in `build/e2e.mjs`
 cover it.
 
+## Email
+
+The forum can announce events and news to its members. Announcements are
+records like anything else, so every message stays in the archive with who it
+went to and when.
+
+A member receives email only if they have an address **and** have ticked
+*Subscribed* — consent is checked in the browser and again on the server, so
+an edited client cannot mail someone who opted out. Each message is sent
+individually, greets the person by name, and carries its own signed
+unsubscribe link that works without logging in. Every send is written to a
+`mail_log` sheet.
+
+Sending needs the Apps Script backend (`apps/api`), which uses the deploying
+account's Gmail quota; the compose dialog shows how many messages are left and
+refuses to send a partial list. Nothing sends automatically — see
+`apps/api/README.md` for why.
+
+Addresses are personal data under the DPDP Act 2023: collect them with
+consent, keep them only while someone is in the forum, and honour removal
+requests. The unsubscribe link does that last part on its own.
+
 ## Design
 
 Dark graphite ground, warm ivory text, one instrument blue, amber only for

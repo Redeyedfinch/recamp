@@ -16,7 +16,8 @@ async function fresh() { const s = new Store(new MemAdapter()); await s.init(); 
 test('seeds an empty adapter with the RECAMP workspace', async () => {
   const s = await fresh();
   assert.ok(s.node('p_about'));
-  assert.equal(s.databases().length, 8);
+  assert.equal(s.databases().length, 9);
+  assert.ok(s.db('db_announcements'), 'announcements database should be seeded');
   assert.equal(s.records('db_events').length, 8);
   assert.ok(s.blocks('r_evt_gates_solace').length > 5);
 });

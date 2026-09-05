@@ -28,10 +28,16 @@ Live: https://redeyedfinch.github.io/recamp/ · Repo: `Redeyedfinch/recamp`
    (labels, coordinates, IDs). No gradients, no glassmorphism, minimal radii
    (3px controls, 6px surfaces), cards only where containment means something —
    otherwise typography + hairline + whitespace.
-3. **Personal student project.** Commit as `Redeyedfinch
+3. **Member email addresses are personal data** (DPDP Act 2023). A member is
+   mailable only with an address AND `subscribed === true`, enforced in
+   `web/js/mail/audience.js` *and* again in `apps/api/Mail.js` because the
+   client cannot be trusted. Every message carries a signed unsubscribe link;
+   every send is logged to the Sheet. Never seed a real address, and never
+   pre-tick consent. `tests/mail.test.mjs` guards this.
+4. **Personal student project.** Commit as `Redeyedfinch
    <adwaithca0@gmail.com>` (already the repo's local git config). No employer
    conventions, document-control IDs, or org policy language anywhere.
-4. **`docs/` is generated** by `node build/build.mjs` from `web/`. Never edit it
+5. **`docs/` is generated** by `node build/build.mjs` from `web/`. Never edit it
    by hand; rebuild before committing if `web/` changed.
 
 ## Stack
@@ -61,20 +67,21 @@ web/css/     tokens → base → layout → components → editor → views → 
 web/js/core  id, order (fractional), dates, icons, dom (h()), viewport (isPhone)
 web/js/data  schema, seed (provenance!), store, adapters/
 web/js/editor  block editor, katex loader
+web/js/mail  audience (consent), render (blocks → email HTML/text)
 web/js/ui    shell, sidebar, palette, menu, dialog, toast, starfield, plate, props
 web/js/views home, page, database, archive, activity, inbox, trash, settings, …
-apps/api/    Apps Script backend (Main.js) — snapshot ⇄ Sheet
+apps/api/    Apps Script backend — Main.js (snapshot ⇄ Sheet), Mail.js (sending)
 build/       build.mjs (→docs/), serve.mjs, cdp.mjs (harness), qa.mjs, e2e.mjs
 ```
 
 ## Commands
 
 ```bash
-npm test               # 26 unit tests: ordering, store tree ops, seed provenance
+npm test               # 36 unit tests: ordering, store, seed provenance, mail consent
 npm run serve          # dev server on :4180
 npm run build          # web/ → docs/
 node build/qa.mjs      # screenshot all 20 routes; --light --mobile --only a,b --url <live>
-node build/e2e.mjs     # 23-step checklist driven through the real UI (incl. 5 mobile)
+node build/e2e.mjs     # 26-step checklist through the real UI (5 mobile, 3 mail)
 ```
 
 Run `npm test` and `node build/e2e.mjs` before committing UI changes.
