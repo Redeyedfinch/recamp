@@ -34,6 +34,12 @@
   .btn { height: 36px; }
   .btn--sm { height: 32px; }
 
+  /* iOS Safari zooms the page when a control under 16px gains focus. Every
+     text entry — inputs, the palette, editable properties, blocks — gets 16px. */
+  :root { --fs-body: 1rem; }
+  .input, .select, .textarea, .palette__input input, .searchbox input, .pv__text, .page__title[contenteditable], .dbview__title, .dbview__desc { font-size: 16px; }
+  .page__title { font-size: 1.85rem; }
+
   /* ---- view frame ------------------------------------------------------ */
 
   .view { padding: var(--s5) var(--s4) calc(var(--s9) + 52px + env(safe-area-inset-bottom)); }
@@ -43,6 +49,10 @@
   .viewhead__actions .btn { flex: 1; justify-content: center; }
   .viewhead__kicker { flex-wrap: wrap; gap: 6px 12px; }
   .section { margin-top: var(--s6); }
+
+  .masthead__orrery { display: none; }   /* the small masthead is for the wordmark */
+  .login__orrery { width: 96vw; height: 42vh; opacity: .8; }
+  .login__orrery .orrery__label { display: none; }
 
   /* ---- masthead: the corner marks were landing on the address ---------- */
 

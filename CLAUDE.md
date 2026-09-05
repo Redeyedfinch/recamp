@@ -42,9 +42,12 @@ Live: https://redeyedfinch.github.io/recamp/ · Repo: `Redeyedfinch/recamp`
 
 ## Stack
 
-Zero dependencies. Static ES modules loaded natively + hand-written CSS. Node
-≥20 is needed only for tests and the build/QA scripts; there is no bundler, so
-the file you read is the file that runs.
+Zero npm dependencies. Static ES modules loaded natively + hand-written CSS.
+Node ≥20 is needed only for tests and the build/QA scripts; there is no bundler,
+so the file you read is the file that runs. Two libraries load lazily from a CDN
+and degrade gracefully offline: KaTeX (equation blocks render as source) and
+anime.js 4 via `https://cdn.jsdelivr.net/npm/animejs@4.5.0/+esm` (the orrery
+stays at its epoch). Do not add a third without the same fallback.
 
 ## Data model
 
@@ -68,7 +71,7 @@ web/js/core  id, order (fractional), dates, icons, dom (h()), viewport (isPhone)
 web/js/data  schema, seed (provenance!), store, adapters/
 web/js/editor  block editor, katex loader
 web/js/mail  audience (consent), render (blocks → email HTML/text)
-web/js/ui    shell, sidebar, palette, menu, dialog, toast, starfield, plate, props
+web/js/ui    shell, sidebar, palette, menu, dialog, toast, starfield, orrery, plate, props
 web/js/views home, page, database, archive, activity, inbox, trash, settings, …
 apps/api/    Apps Script backend — Main.js (snapshot ⇄ Sheet), Mail.js (sending)
 build/       build.mjs (→docs/), serve.mjs, cdp.mjs (harness), qa.mjs, e2e.mjs
@@ -77,14 +80,32 @@ build/       build.mjs (→docs/), serve.mjs, cdp.mjs (harness), qa.mjs, e2e.mjs
 ## Commands
 
 ```bash
-npm test               # 36 unit tests: ordering, store, seed provenance, mail consent
+npm test               # 49 unit tests: ordering, store, seed provenance, mail consent, tokens contrast, orrery
 npm run serve          # dev server on :4180
 npm run build          # web/ → docs/
 node build/qa.mjs      # screenshot all 20 routes; --light --mobile --only a,b --url <live>
-node build/e2e.mjs     # 26-step checklist through the real UI (5 mobile, 3 mail)
+node build/e2e.mjs     # 28-step checklist through the real UI (5 mobile, 3 mail, celestial, a11y names)
 ```
 
 Run `npm test` and `node build/e2e.mjs` before committing UI changes.
+
+## Celestial layer and motion
+
+The star field (canvas) and the orrery (SVG, six classical planets on a log-AU
+plate, honest periods with one Earth year = 80 s, driven by anime.js) are
+decorative and `aria-hidden`. They stop under `prefers-reduced-motion` and under
+the user's **Settings → Appearance → Celestial motion** switch (WCAG 2.2.2 needs
+a pause control for auto-playing motion). Planets are 2–6px; the brief forbids
+giant planets and nebula wallpaper — keep it an instrument plate.
+
+## Accessibility bar
+
+`tests/tokens.test.mjs` fails the build if `--text-faint` drops under 4.5:1 or
+`--text-ghost` under 3:1 on any surface in either theme (they were 3.98 and 2.34
+once — the eye did not notice). Icon-only controls need `aria-label`; the e2e
+a11y step scans for unnamed ones. Form controls use `field()` from
+`views/common.js` for a real `<label for>`. Coarse pointers get 44px hit areas
+via `::after` in components.css; phones get 16px text entry so iOS stops zooming.
 
 ## Gotchas (all cost real debugging time)
 
@@ -113,6 +134,10 @@ Run `npm test` and `node build/e2e.mjs` before committing UI changes.
   `.main` got `overflow: hidden`.
 - **`celestial.css` loads after `views.css`**, so an equal-specificity rule there
   (`.arc { display: block }`) beats one in views.css. `mobile.css` is last.
+- **`svg.append(el)` returns undefined** — `svg.append(x).textContent = …` throws
+  and silently aborts a whole render. Set text first, then append.
+- **`?enter=1` / `?enter=0`** enter or leave the Enter screen for QA; the Enter
+  screen's title equals Home's, so check for `.login`, not the title.
 - **The Apps Script API refuses everything but `ping`** until someone runs
   `setup()` in the editor, which mints the access token. That is a manual step
   and is still outstanding.

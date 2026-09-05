@@ -37,11 +37,23 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .iconbtn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.iconbtn:active { background: var(--bg-active); }
 .iconbtn[aria-pressed='true'] { color: var(--stellar); }
 .iconbtn svg { width: 15px; height: 15px; }
 .iconbtn--sm { width: 20px; height: 20px; } .iconbtn--sm svg { width: 12px; height: 12px; }
 
 .icon { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Touch: the visual stays quiet, the hit area grows to 44px. The ::after is
+   transparent and sits inside a relatively positioned control. */
+@media (pointer: coarse) {
+  .iconbtn, .btn--sm, .tab, .tree__toggle, .crumb, .blk__handle, .dbtable__h { position: relative; }
+  .iconbtn::after, .btn--sm::after, .tab::after, .tree__toggle::after, .crumb::after, .dbtable__h::after { content: ''; position: absolute; inset: -6px; }
+  .btn { min-height: 44px; }
+  .nav-item { min-height: 44px; }
+  .menu__item { min-height: 44px; }
+  .palette__item { min-height: 44px; }
+}
 
 /* ---- keyboard hint ---------------------------------------------------- */
 .kbd {

@@ -148,6 +148,7 @@
   overflow-y: auto; overflow-x: hidden;
   position: relative;
 }
+.content:focus, .content:focus-visible { box-shadow: none; outline: none; }   /* a programmatic landing point, not a control */
 .view { padding: var(--s8) var(--s9) var(--s10); min-height: 100%; }
 .view--flush { padding: 0; }
 .view--wide { padding-left: var(--s7); padding-right: var(--s7); }

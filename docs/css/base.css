@@ -31,7 +31,8 @@ button, input, select, textarea {
   font: inherit; color: inherit; letter-spacing: inherit;
   background: none; border: 0; margin: 0; padding: 0;
 }
-button { cursor: pointer; text-align: inherit; }
+button { cursor: pointer; text-align: inherit; touch-action: manipulation; }
+a, [role='button'], .nav-item { touch-action: manipulation; }
 button:disabled { cursor: default; opacity: .5; }
 a { color: var(--celestial); text-decoration: none; }
 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }

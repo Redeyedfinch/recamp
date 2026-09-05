@@ -186,8 +186,15 @@ await step('theme toggle switches light / dark and persists', async () => {
 
 await step('keyboard: Tab reaches the sidebar, Ctrl+\\ toggles it, Escape closes menus', async () => {
   await b.navigate(`${base}#/`);
-  await b.evaluate(`document.body.focus()`); await b.key('Tab', { vk: 9 });
-  assert(await b.waitFor(`document.activeElement?.closest('.sidebar') !== null`), 'focus not in sidebar');
+  // After a route change focus is moved into the view (WCAG focus-on-route-change);
+  // let that settle, then start from the top of the document like a fresh Tab would.
+  await b.sleep(150);
+  assert(await b.evaluate(`document.activeElement === document.querySelector('.content')`), 'route change should land focus in the content region');
+  // From the content region the sidebar is *behind* you in tab order; Shift+Tab walks
+  // back through the topbar into it. Three presses is the worst case on any view.
+  let reached = false;
+  for (let i = 0; i < 3 && !reached; i++) { await b.key('Tab', { vk: 9, shift: true }); reached = await b.evaluate(`document.activeElement?.closest('.sidebar') !== null`); }
+  assert(reached, 'Shift+Tab from the view should reach the sidebar');
   await b.key('\\', { ctrl: true, code: 'Backslash', vk: 220 });
   assert(await b.waitFor(`document.getElementById('app').dataset.sidebar === 'closed'`), 'sidebar not closed');
   await b.key('\\', { ctrl: true, code: 'Backslash', vk: 220 });
@@ -321,6 +328,55 @@ await step('mail: an event can raise a linked announcement draft', async () => {
   assert(draft.status === 'Draft', 'a new announcement must start as a Draft');
   assert(draft.event === 'r_evt_gates_solace', 'draft is not linked to the event');
   assert(/Gates of Solace/.test(draft.subject), `subject not prefilled: "${draft.subject}"`);
+});
+
+await step('celestial: the orrery turns on Home and Enter, and stands still when motion is off or reduced', async () => {
+  await b.setViewport(1440, 900);
+  await b.evaluate(`window.recamp?.store.setSetting('motion', 'on')`).catch(() => {});
+  await b.navigate(`${base}#/`);
+  assert(await b.waitFor(`document.querySelectorAll('.masthead .orrery .orrery__planet').length === 6`), 'six planets expected on the masthead plate');
+  const read = () => b.evaluate(`document.querySelector('.masthead .orrery__planet-g--mercury').getAttribute('transform')`);
+  // anime.js is fetched from a CDN; give it a moment, then Mercury (19 s period) must have moved
+  const t0 = await read(); await b.sleep(2200); const t1 = await read();
+  assert(t0 !== t1, `Mercury did not move (${t0})`);
+
+  await b.evaluate(`window.recamp.store.setSetting('motion', 'off')`);
+  assert(await b.waitFor(`!!document.querySelector('.masthead .orrery')`), 'home did not re-render');
+  await b.sleep(400);
+  const s0 = await read(); await b.sleep(1800); const s1 = await read();
+  assert(s0 === s1, 'motion off must freeze the plate');
+  const stillStars = await b.evaluate(`!!document.querySelector('.masthead .starfield')`);
+  assert(stillStars, 'the star field should still be drawn when motion is off');
+  await b.evaluate(`window.recamp.store.setSetting('motion', 'on')`);
+
+  // OS-level preference wins even with the setting on
+  await b.cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  await b.navigate(`${base}#/`);
+  await b.sleep(400);
+  const r0 = await read(); await b.sleep(1800); const r1 = await read();
+  assert(r0 === r1, 'prefers-reduced-motion must freeze the plate');
+  await b.cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+
+  // earlier steps entered the workspace; ?enter=0 forgets that so the Enter screen can show
+  await b.navigate(`http://localhost:${port}/?enter=0#/enter`);
+  assert(await b.waitFor(`document.querySelectorAll('.login .orrery .orrery__planet').length === 6 && /ORRERY · EPOCH/.test(document.querySelector('.login__epoch')?.textContent || '')`), 'Enter screen should carry the plate and its epoch line');
+});
+
+await step('a11y: every icon-only control has an accessible name, and the Settings switch is a real switch', async () => {
+  for (const hash of ['#/', '#/db/db_events', '#/p/r_evt_gates_solace', '#/settings']) {
+    await b.navigate(`${base}${hash}`);
+    const bad = await b.evaluate(`[...document.querySelectorAll('button, a[href]')].filter(el => {
+      if (el.closest('[aria-hidden="true"]')) return false;
+      const text = (el.textContent || '').trim();
+      const name = el.getAttribute('aria-label') || el.getAttribute('title') || (el.getAttribute('aria-labelledby') && document.getElementById(el.getAttribute('aria-labelledby'))?.textContent);
+      return !text && !name && getComputedStyle(el).display !== 'none';
+    }).map(el => el.outerHTML.slice(0, 90))`);
+    assert(bad.length === 0, `${hash}: ${bad.length} unnamed control(s): ${bad.join(' | ')}`);
+  }
+  const sw = await b.evaluate(`(() => { const s = document.querySelector('.switch[role="switch"]'); return s && { checked: s.getAttribute('aria-checked'), label: s.getAttribute('aria-label') }; })()`);
+  assert(sw && sw.label === 'Celestial motion' && ['true', 'false'].includes(sw.checked), 'motion switch is missing its role/state');
+  const labelled = await b.evaluate(`[...document.querySelectorAll('.settings input')].every(i => i.id && document.querySelector('label[for="' + i.id + '"]'))`);
+  assert(labelled, 'every Settings input should have a <label for>');
 });
 
 await step('everything persisted to localStorage and reloads', async () => {

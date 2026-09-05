@@ -60,9 +60,9 @@ export async function openCompose(ctx, nodeId) {
   }
 
   /* subject */
-  const subjectInput = h('input.input', { type: 'text', value: msg.subject, placeholder: 'Subject line' });
-  body.append(h('div.field', h('span.label', 'Subject'), subjectInput,
-    h('span.field__hint', 'Shown in the inbox. The page title is used if you leave it as is.')));
+  const subjectInput = h('input.input', { id: 'compose-subject', type: 'text', value: msg.subject, placeholder: 'Subject line', 'aria-describedby': 'compose-subject-hint' });
+  body.append(h('div.field', h('label.label', { for: 'compose-subject' }, 'Subject'), subjectInput,
+    h('span.field__hint#compose-subject-hint', 'Shown in the inbox. The page title is used if you leave it as is.')));
 
   /* quota / backend state */
   if (!cloud) {

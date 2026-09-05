@@ -26,8 +26,8 @@
   /* ---- ink ----------------------------------------------------------- */
   --text-primary:   #e9e6e0;   /* warm ivory on cold graphite             */
   --text-secondary: #a2a9b0;
-  --text-faint:     #6c757e;
-  --text-ghost:     #4a5259;
+  --text-faint:     #7f878f;   /* ≥4.5:1 on every surface, menus included   */
+  --text-ghost:     #636b73;   /* ≥3:1 — tertiary marks, never body text    */
   --text-inverse:   #0b0d10;
 
   /* ---- rules --------------------------------------------------------- */
@@ -134,8 +134,8 @@
 
   --text-primary:   #191c1f;
   --text-secondary: #565e66;
-  --text-faint:     #838c94;
-  --text-ghost:     #a8afb5;
+  --text-faint:     #63676b;   /* ≥4.5:1 on paper, sunken and the desk       */
+  --text-ghost:     #7f8387;   /* ≥3:1                                       */
   --text-inverse:   #f8f6f1;
 
   --line:           #dcd5c8;

@@ -10,7 +10,7 @@ export function seededRandom(seed) {
 }
 export function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
-export function mountStarfield(host, { seed = 'recamp', density = 0.00028, arc = true, grid = true } = {}) {
+export function mountStarfield(host, { seed = 'recamp', density = 0.00028, arc = true, grid = true, animate = true } = {}) {
   const canvas = document.createElement('canvas');
   canvas.className = 'starfield'; canvas.setAttribute('aria-hidden', 'true');
   host.prepend(canvas);
@@ -46,8 +46,9 @@ export function mountStarfield(host, { seed = 'recamp', density = 0.00028, arc =
       ctx.beginPath(); for (let x = 0.5; x < w; x += 16) { ctx.moveTo(x, h - (x % 80 < 1 ? 8 : 4)); ctx.lineTo(x, h); } ctx.stroke();
     }
     ctx.fillStyle = c.star;
+    const still = reduce.matches || !animate;        // WCAG 2.2.2: the user can switch motion off
     for (const s of stars) {
-      const tw = reduce.matches ? 1 : 0.85 + 0.15 * Math.sin(elapsed / 2600 + s.tw * 6.28);
+      const tw = still ? 1 : 0.85 + 0.15 * Math.sin(elapsed / 2600 + s.tw * 6.28);
       ctx.globalAlpha = s.a * tw; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -59,7 +60,7 @@ export function mountStarfield(host, { seed = 'recamp', density = 0.00028, arc =
       ctx.setLineDash([2, 6]); ctx.globalAlpha = 0.35;
       ctx.beginPath(); ctx.arc(cx, cy, R * 0.93, Math.PI * 1.1, Math.PI * 1.6); ctx.stroke();
       ctx.setLineDash([]);
-      const p = reduce.matches ? 0.38 : ((elapsed / 90000) % 1);
+      const p = still ? 0.38 : ((elapsed / 90000) % 1);
       const a = Math.PI * (1.08 + 0.54 * p);
       ctx.globalAlpha = 1; ctx.fillStyle = c.amber;
       ctx.beginPath(); ctx.arc(cx + R * Math.cos(a), cy + R * Math.sin(a), 2, 0, 6.283); ctx.fill();
@@ -76,7 +77,7 @@ export function mountStarfield(host, { seed = 'recamp', density = 0.00028, arc =
     if (now - last > 80) { last = now; draw(now - t0); }
     raf = requestAnimationFrame(loop);
   };
-  const start = () => { if (!raf && !reduce.matches && !document.hidden) raf = requestAnimationFrame(loop); };
+  const start = () => { if (!raf && animate && !reduce.matches && !document.hidden) raf = requestAnimationFrame(loop); };
   const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
 
   const ro = new ResizeObserver(() => layout());

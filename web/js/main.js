@@ -17,6 +17,7 @@ const store = new Store(new LocalAdapter());
 await store.init();
 // ?enter=1 skips the Enter screen (QA screenshots, kiosk links); ?theme=light|dark presets the theme.
 if (/[?&]enter=1/.test(location.search)) store.setSetting('entered', true);
+if (/[?&]enter=0/.test(location.search)) store.setSetting('entered', false);   // back to the Enter screen (QA, demos)
 const themeParam = /[?&]theme=(light|dark)/.exec(location.search)?.[1];
 if (themeParam) store.setSetting('theme', themeParam);
 
@@ -112,6 +113,9 @@ async function route(r) {
   try { current = mod.mount(ctx, ctx.shell.content, r) || {}; }
   catch (e) { console.error(e); ctx.shell.content.append(Object.assign(document.createElement('div'), { className: 'view', textContent: `Something went wrong rendering this view: ${e.message}` })); }
   document.title = titleFor(r);
+  // Keyboard and screen-reader users land in the new view — unless the view has
+  // already placed focus (a fresh page title, the search box) or an overlay is up.
+  setTimeout(() => { const a = document.activeElement; if ((!a || a === document.body || !ctx.shell.content.contains(a)) && !document.querySelector('.palette-scrim, .dialog-scrim, .menu')) ctx.shell.content.focus({ preventScroll: true }); }, 40);
 }
 function titleFor(r) {
   const base = 'RECAMP';

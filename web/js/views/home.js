@@ -6,6 +6,7 @@
 import { h, icon } from '../core/dom.js';
 import { greeting, sessionLabel, fmtDate, relative, daysBetween, toDate, MONTHS } from '../core/dates.js';
 import { mountStarfield } from '../ui/starfield.js';
+import { mountOrrery } from '../ui/orrery.js';
 import { statusTag, typeTag, catalogueMark, provenanceMark, dateLine, formatValue } from '../ui/props.js';
 import { toneOf } from '../data/schema.js';
 import { sectionHead, logRow, groupByDay, empty } from './common.js';
@@ -13,12 +14,13 @@ import { href } from '../ui/router.js';
 
 export function mount(ctx, host) {
   const { store } = ctx;
-  let field = null;
+  let field = null, orrery = null;
   const view = h('div.view.home');
   host.append(view);
 
   function render() {
-    field?.destroy(); view.replaceChildren();
+    field?.destroy(); orrery?.destroy(); view.replaceChildren();
+    const animate = store.setting('motion', 'on') !== 'off';   // user's pause control (WCAG 2.2.2)
     const ws = store.meta.workspace || {};
     const now = new Date();
     const upcoming = store.upcomingEvents(now);
@@ -32,6 +34,7 @@ export function mount(ctx, host) {
     /* masthead */
     const mast = h('div.masthead.grid-surface',
       h('div.marks', h('span.mark.mark--tl', h('b', 'RECAMP OBSERVATORY')), h('span.mark.mark--tr', sessionLabel(now)), h('span.mark.mark--bl', ws.coords || ''), h('span.mark.mark--br', `${fmtDate(now)}`)),
+      h('div.masthead__orrery'),
       h('div.masthead__inner',
         h('div',
           h('h1.masthead__name', ws.name || 'RECAMP'),
@@ -39,7 +42,9 @@ export function mount(ctx, host) {
           h('div.masthead__inst', h('span.coord', h('b', 'SCHOOL OF SCIENCES')), h('span.coord', 'JAIN (DEEMED-TO-BE UNIVERSITY)'), h('span.coord', 'BENGALURU'))),
         h('div.masthead__side', constellation(ctx, { events: events.length, projects: store.records('db_projects').length, research: store.records('db_research').length, people: store.records('db_members').length, archive: events.filter(e => e.props.status === 'Completed').length, live: events.some(e => e.props.status === 'Live') }))));
     view.append(mast);
-    field = mountStarfield(mast, { seed: 'recamp-home', density: 0.00022, grid: false });
+    // stars behind; the orrery supplies the orbital motion, so the star field's own arc is off
+    field = mountStarfield(mast, { seed: 'recamp-home', density: 0.00022, grid: false, arc: false, animate });
+    orrery = mountOrrery(mast.querySelector('.masthead__orrery'), { seed: 'recamp-home', className: 'orrery--faint', annotation: false, labels: true, animate });
 
     /* title + lead */
     const parts = [];
@@ -110,7 +115,7 @@ export function mount(ctx, host) {
   const unsub = store.on('change', d => { if (d.type !== 'block:update' && d.type !== 'recent' && d.type !== 'noop') render(); });
   render();
   ctx.shell.setTopbar({ crumbs: [{ title: 'Home', icon: 'home' }] });
-  return { destroy() { unsub(); field?.destroy(); } };
+  return { destroy() { unsub(); field?.destroy(); orrery?.destroy(); } };
 }
 
 export function datebox(node) {

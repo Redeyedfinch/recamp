@@ -154,3 +154,10 @@ things happening now. Instrument Serif for mastheads and titles, IBM Plex Sans
 for reading, IBM Plex Mono for coordinates, catalogue numbers and labels. No
 utility framework, no component library, no gradients. Light mode is a
 laboratory notebook, not a white dashboard.
+
+The celestial layer is an instrument, not wallpaper: a seeded star field, and an
+**orrery** — the six classical planets on a log-scale plate with their real
+orbital periods compressed so one Earth year takes eighty seconds, turned by
+anime.js. It stops for `prefers-reduced-motion` and for the **Celestial motion**
+switch in Settings. Every text colour clears WCAG 4.5:1 (3:1 for tertiary marks)
+on every surface in both themes, and a test keeps it that way.

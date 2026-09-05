@@ -3,7 +3,7 @@ import { h, icon } from '../core/dom.js';
 import { fmtStamp } from '../core/dates.js';
 import { confirm } from '../ui/dialog.js';
 import { CloudAdapter } from '../data/adapters/cloud.js';
-import { viewhead } from './common.js';
+import { viewhead, field } from './common.js';
 
 export function mount(ctx, host) {
   const { store } = ctx;
@@ -19,14 +19,18 @@ export function mount(ctx, host) {
 
     /* profile */
     const name = h('input.input', { type: 'text', value: user.name || '', placeholder: 'Your name, as it should appear in the log', onchange: () => store.setMeta({ user: { ...user, name: name.value.trim() } }) });
-    view.append(section('Profile', 'Your name is stamped on activity entries. Nothing else is collected.', h('div.field', h('span.label', 'Display name'), name),
+    view.append(section('Profile', 'Your name is stamped on activity entries. Nothing else is collected.', field('Display name', name),
       user.email ? h('div.settings__row', h('span.t-secondary', `Signed in with Google as ${user.email}`), h('button.btn.btn--sm', { type: 'button', onclick: () => store.setMeta({ user: { id: 'me', name: user.name } }) }, icon('logout'), 'Sign out')) : null));
 
     /* appearance */
     const theme = store.setting('theme', 'dark');
+    const motionOn = store.setting('motion', 'on') !== 'off';
     view.append(section('Appearance', 'Dark is the observatory; light is the laboratory notebook. System follows your device.',
       h('div.theme-swatches', [['dark', 'Dark'], ['light', 'Light'], ['system', 'System']].map(([k, l]) => h('button.swatch', { type: 'button', class: `swatch--${k}`, 'aria-pressed': String(theme === k), 'aria-label': `${l} theme`, onclick: () => ctx.theme.set(k) }, l))),
-      h('div.settings__row', h('span', 'Reduced motion'), h('span.t-faint', { style: { fontSize: 'var(--fs-small)' } }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 'On — following your system setting' : 'Following your system setting'))));
+      h('div.settings__row',
+        h('div', h('span', 'Celestial motion'), h('span.field__hint', { style: { display: 'block' } }, 'Orbits on the observatory plates and the faint star twinkle. Off keeps them still.')),
+        h('button.switch', { type: 'button', role: 'switch', 'aria-checked': String(motionOn), 'aria-label': 'Celestial motion', onclick: () => store.setSetting('motion', motionOn ? 'off' : 'on') })),
+      h('div.settings__row', h('span', 'Reduced motion'), h('span.t-faint', { style: { fontSize: 'var(--fs-small)' } }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 'On — your system asks for less motion, so the plates stay still regardless' : 'Following your system setting'))));
 
     /* storage */
     const url = h('input.input', { type: 'url', value: cloud?.url || '', placeholder: 'https://script.google.com/macros/s/…/exec' });
@@ -49,8 +53,8 @@ export function mount(ctx, host) {
     const disconnect = cloud ? h('button.btn', { type: 'button', onclick: async () => { if (await confirm({ title: 'Disconnect from Google Sheets?', message: 'This device keeps its copy; the Sheet keeps what was synced. Reconnect any time.', confirmLabel: 'Disconnect' })) { store.setSetting('cloud', null); store.detachCloud(); status = null; render(); } } }, 'Disconnect') : null;
     view.append(section('Storage', 'The workspace is a single document. It lives in this browser, and optionally in a Google Sheet the forum owns through the Apps Script backend in apps/api.',
       statusEl,
-      h('div.field', h('span.label', 'Apps Script web app URL'), url),
-      h('div.field', h('span.label', 'Access token'), token, h('span.field__hint', 'Deploy apps/api, run setup() once, copy the token from the log. See apps/api/README.md.')),
+      field('Apps Script web app URL', url),
+      field('Access token', token, { hint: 'Deploy apps/api, run setup() once, copy the token from the log. See apps/api/README.md.' }),
       h('div.row', connect, disconnect)));
 
     /* mail */
@@ -68,9 +72,9 @@ export function mount(ctx, host) {
       cloud ? null : h('span', 'Sending needs the Apps Script backend — connect it above.'));
     view.append(section('Email', 'Announcements go out through the Apps Script deployment, using the Google account that owns it. Consent is checked again on the server, and every send is logged to the Sheet.',
       mailStatus,
-      h('div.field', h('span.label', 'Sender name'), fromName),
-      h('div.field', h('span.label', 'Reply-to address'), replyTo, h('span.field__hint', 'Where replies land. Leave blank to use the sending account.')),
-      h('div.field', h('span.label', 'Footer line'), footer, h('span.field__hint', 'Appears above the unsubscribe link in every message.')),
+      field('Sender name', fromName),
+      field('Reply-to address', replyTo, { hint: 'Where replies land. Leave blank to use the sending account.' }),
+      field('Footer line', footer, { hint: 'Appears above the unsubscribe link in every message.' }),
       h('div.row', { style: { flexWrap: 'wrap' } },
         h('a.btn', { href: '#/db/db_announcements' }, icon('signal'), 'Announcements'),
         h('button.btn', { type: 'button', disabled: !cloud, onclick: async () => {

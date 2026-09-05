@@ -26,6 +26,9 @@
   background: var(--bg-deep); border-bottom: 1px solid var(--line);
   min-height: 300px;
 }
+/* The orrery is a background instrument: centre-right, faint, behind the empty
+   middle of the masthead — never behind the wordmark, never over the index. */
+.masthead__orrery { position: absolute; left: 32%; right: 30%; top: -14%; bottom: -14%; z-index: 0; }   /* clears both the wordmark and the index */
 .masthead__inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr minmax(220px, 300px); gap: var(--s7); align-items: end; }
 .masthead__name { font-family: var(--font-display); font-size: var(--fs-masthead); line-height: .9; letter-spacing: -0.02em; margin-left: -0.04em; }
 .masthead__desc { margin-top: 14px; }
@@ -380,6 +383,11 @@
    ========================================================================== */
 .login { position: fixed; inset: 0; background: var(--bg-deep); display: grid; place-items: center; overflow: hidden; z-index: var(--z-dialog); }
 .login__field { position: absolute; inset: 0; }
+/* The wordmark sits at the centre of the system: the Sun is behind RECAMP, the
+   orbits radiate out past the buttons. Labels take the lower-left bearing. */
+.login__orrery { position: absolute; left: 50%; top: 40%; width: min(96vw, 980px); height: min(78vh, 600px); transform: translate(-50%, -50%); }
+.login__epoch { display: none; }
+@media (min-width: 900px) { .login__epoch { display: inline; } }
 .login__box { position: relative; z-index: 1; text-align: center; display: grid; justify-items: center; gap: 6px; padding: var(--s6); }
 .login__name { font-family: var(--font-display); font-size: clamp(3.6rem, 10vw, 6.4rem); line-height: .9; letter-spacing: -0.02em; }
 .login__desc { margin-top: 12px; }

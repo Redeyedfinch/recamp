@@ -42,6 +42,20 @@ export function logRow(ctx, e) {
 
 export function empty(text, action = null) { return h('div.empty', text, action); }
 
+let fieldSeq = 0;
+/**
+ * A labelled control. Emits a real <label for> so screen readers and
+ * click-the-label both work; a span styled like a label does neither.
+ * `hint` becomes aria-describedby.
+ */
+export function field(label, control, { hint = null, id = null } = {}) {
+  const fid = id || control.id || `f_${++fieldSeq}`;
+  control.id = fid;
+  const hintEl = hint ? h('span.field__hint', { id: `${fid}_hint` }, hint) : null;
+  if (hintEl) control.setAttribute('aria-describedby', hintEl.id);
+  return h('div.field', h('label.label', { for: fid }, label), control, hintEl);
+}
+
 export function btn(label, onclick, { icon: ic = null, primary = false, ghost = false, sm = false, title = null } = {}) {
   return h('button.btn', { type: 'button', class: `${primary ? 'btn--primary' : ''} ${ghost ? 'btn--ghost' : ''} ${sm ? 'btn--sm' : ''}`, onclick, title }, ic ? icon(ic) : null, label);
 }

@@ -65,3 +65,24 @@
 .datebox__year { font-family: var(--font-mono); font-size: var(--fs-label); color: var(--text-ghost); letter-spacing: .06em; margin-top: 1px; }
 .datebox--unknown .datebox__day { font-size: 1.3rem; color: var(--text-faint); padding: 6px 0; }
 .datebox--year .datebox__day { font-size: 1.5rem; }
+
+/* Orrery — the clockwork plate. Hairlines and small nodes; the Sun is the
+   only warm point. Everything themes through tokens, so it works on paper too. */
+.orrery { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.orrery__axis { stroke: var(--line-faint); stroke-width: 1; }
+.orrery__orbit { fill: none; stroke: var(--line-strong); stroke-width: 1; }
+.orrery__orbit--dashed { stroke: var(--line); stroke-dasharray: 2 7; }
+.orrery__tick { stroke: var(--line-strong); stroke-width: 1; }
+.orrery__sun { fill: var(--stellar); }
+.orrery__sun-halo { fill: var(--stellar); opacity: .12; }
+.orrery__planet { fill: var(--text-secondary); }
+.orrery__planet--earth { fill: var(--celestial-hi); }
+.orrery__planet--mars { fill: var(--rust); }
+.orrery__planet--jupiter { fill: var(--text-faint); }
+.orrery__ring { fill: none; stroke: var(--text-faint); stroke-width: .9; }
+.orrery__moon { fill: var(--text-faint); }
+.orrery__moon-orbit { fill: none; stroke: var(--line-strong); stroke-width: .6; stroke-dasharray: 1 3; }
+.orrery__label, .orrery__note { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em; fill: var(--text-ghost); text-transform: uppercase; }
+.orrery__note { fill: var(--text-faint); }
+.orrery--faint { opacity: .55; }
+[data-theme='light'] .orrery__sun-halo { opacity: .18; }

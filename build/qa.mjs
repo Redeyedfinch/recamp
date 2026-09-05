@@ -36,10 +36,12 @@ const expectTitle = { announcements: 'Announcements', 'announce-draft': 'Draft',
 let failures = 0;
 for (const [name, hash] of routes) {
   b.errors.length = 0;
-  const q = name === 'enter' ? '' : `?enter=1${light ? '&theme=light' : ''}`;
+  // 'enter' must forget any earlier entry (?enter=0), and its title equals Home's, so it is
+  // checked by the presence of the Enter screen rather than by title.
+  const q = name === 'enter' ? `?enter=0${light ? '&theme=light' : ''}` : `?enter=1${light ? '&theme=light' : ''}`;
   await b.navigate(`${base}${q}${hash}`);
   const want = expectTitle[name] || 'Events';
-  const routed = await b.waitFor(`document.title.includes(${JSON.stringify(want)})`, 15000);
+  const routed = name === 'enter' ? await b.waitFor(`!!document.querySelector('.login .login__name')`, 15000) : await b.waitFor(`document.title.includes(${JSON.stringify(want)})`, 15000);
   await b.sleep(name === 'home' || name === 'enter' ? 700 : 300);
   const file = path.join(out, `${liveUrl ? 'live-' : ''}${light ? 'light-' : ''}${mobile ? 'm-' : ''}${name}.png`);
   await b.screenshot(file);

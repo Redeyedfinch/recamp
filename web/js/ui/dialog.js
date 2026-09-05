@@ -55,7 +55,8 @@ export function confirm({ title, message, confirmLabel = 'Confirm', danger = fal
 }
 
 export function prompt({ title, label = '', value = '', placeholder = '', confirmLabel = 'Save', hint = '' }) {
-  const input = h('input.input', { type: 'text', value, placeholder });
-  const body = h('div.field', label ? h('span.label', label) : null, input, hint ? h('span.field__hint', hint) : null);
+  const id = `prompt_${Date.now().toString(36)}`;
+  const input = h('input.input', { id, type: 'text', value, placeholder, 'aria-describedby': hint ? `${id}_hint` : null });
+  const body = h('div.field', label ? h('label.label', { for: id }, label) : null, input, hint ? h('span.field__hint', { id: `${id}_hint` }, hint) : null);
   return dialog({ title, body, actions: [{ label: 'Cancel', value: null }, { label: confirmLabel, primary: true, onClick: () => input.value.trim() || false }] });
 }
