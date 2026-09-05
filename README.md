@@ -100,6 +100,31 @@ block drag handle is replaced by a menu button, since HTML5 drag never fires on
 touch. `node build/qa.mjs --mobile` and the mobile steps in `build/e2e.mjs`
 cover it.
 
+## Google sign-in (optional)
+
+The entry screen can sign people in with Google. It uses Google Identity
+Services, needs a free OAuth client id, and involves no billing and no app
+review — the only scopes are name, email and profile.
+
+1. <https://console.cloud.google.com/apis/credentials> → pick or create a project.
+2. **OAuth consent screen** → type **External**, app name, your address for
+   support and developer contact. **Publish app** so anyone can sign in;
+   leaving it in testing limits it to addresses you add as *Test users*.
+3. **Create credentials → OAuth client ID → Web application**.
+4. **Authorised JavaScript origins** — add `https://redeyedfinch.github.io`
+   (and `http://localhost:4180` for the dev server). Scheme and host only, no
+   path. Leave **redirect URIs empty**: the ID-token flow does not use one.
+5. Paste the client id into the dialog behind *Sign in with Google*.
+
+The client id is public by design and there is no client secret.
+
+**What it does and does not do.** Signing in records *who is editing* — the
+name and email land on activity entries. It is not access control: the
+workspace is local-first, and the data in the Sheet is governed by the Apps
+Script token and by who the Sheet is shared with in Drive. Turning sign-in
+into real authorisation would mean verifying the ID token inside `apps/api`
+and checking the address against the Members list; that is not built.
+
 ## Email
 
 The forum can announce events and news to its members. Announcements are

@@ -27,12 +27,24 @@ export function mount(ctx, host) {
 
   function enter() { store.setSetting('entered', true); ctx.router.go('/', { replace: true }); }
   function explain() {
-    const input = h('input.input', { type: 'text', placeholder: '1234567890-abc.apps.googleusercontent.com' });
-    dialog({ title: 'Google sign-in is not configured yet', body: h('div.stack',
-      h('p', 'Sign-in uses Google Identity Services and needs an OAuth client id from the forum\'s Google Cloud project (APIs & Services → Credentials → OAuth client, type Web, with this site\'s origin allowed).'),
-      h('p', 'It identifies who is editing — the name and email go on activity entries. Access to the data is still governed by the Apps Script token and Drive sharing.'),
-      h('div.field', h('span.label', 'OAuth client id'), input)),
-      actions: [{ label: 'Not now' }, { label: 'Save & sign in', primary: true, onClick: () => { const v = input.value.trim(); if (!v) return false; store.setSetting('googleClientId', v); setTimeout(() => signIn(v), 100); return true; } }] });
+    const input = h('input.input', { type: 'text', placeholder: '1234567890-abc.apps.googleusercontent.com', autocomplete: 'off', spellcheck: 'false' });
+    // The origin is the one thing people get wrong: it is scheme + host only,
+    // never the path. Show the exact string rather than describing it.
+    const origin = location.origin;
+    const copy = h('button.btn.btn--sm', { type: 'button', onclick: () => { navigator.clipboard?.writeText(origin); ctx.toast('Origin copied'); } }, icon('copy'), 'Copy');
+    dialog({ title: 'Set up Google sign-in', wide: true, body: h('div.stack',
+      h('p', 'Sign-in uses Google Identity Services. It needs a free OAuth client id from a Google Cloud project — there is no billing and no app review for this.'),
+      h('ol.setup-steps',
+        h('li', 'Open ', h('a', { href: 'https://console.cloud.google.com/apis/credentials', target: '_blank', rel: 'noopener' }, 'console.cloud.google.com/apis/credentials'), ' and pick or create a project.'),
+        h('li', 'Configure the ', h('b', 'OAuth consent screen'), ': type ', h('b', 'External'), ', app name “RECAMP”, and your own address for both support and developer contact. The only scopes needed are name, email and profile, which need no verification — press ', h('b', 'Publish app'), ' so anyone can sign in, or leave it in testing and add each person under ', h('i', 'Test users'), '.'),
+        h('li', h('b', 'Credentials → Create credentials → OAuth client ID'), ', application type ', h('b', 'Web application'), '.'),
+        h('li', 'Under ', h('b', 'Authorised JavaScript origins'), ' add the origin below. Leave ', h('i', 'Authorised redirect URIs'), ' empty — this flow does not use one.'),
+        h('li', 'Copy the client id (it ends in ', h('code', '.apps.googleusercontent.com'), ') and paste it here.')),
+      h('div.field', h('span.label', 'Origin to authorise'), h('div.row', h('code.setup-origin', origin), copy),
+        h('span.field__hint', 'Scheme and host only, no path. Add ', h('code', 'http://localhost:4180'), ' too if you run the dev server.')),
+      h('div.field', h('span.label', 'OAuth client id'), input),
+      h('p.t-faint', { style: { fontSize: 'var(--fs-small)' } }, 'The client id is public by design — it lives in the page source, and there is no client secret. Signing in records who is editing: the name and email go on activity entries. It does not control access to the workspace, which is governed by the Apps Script token and by who the Sheet is shared with in Drive.')),
+      actions: [{ label: 'Not now' }, { label: 'Save & sign in', primary: true, onClick: () => { const v = input.value.trim(); if (!/\.apps\.googleusercontent\.com$/.test(v)) { ctx.toast('That does not look like a client id — it should end in .apps.googleusercontent.com'); return false; } store.setSetting('googleClientId', v); setTimeout(() => signIn(v), 100); return true; } }] });
   }
   function signIn(id) {
     const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
