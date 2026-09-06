@@ -141,3 +141,7 @@ via `::after` in components.css; phones get 16px text entry so iOS stops zooming
 - **The Apps Script API refuses everything but `ping`** until someone runs
   `setup()` in the editor, which mints the access token. That is a manual step
   and is still outstanding.
+
+## Design handoff
+
+`design/STITCH-HANDOFF.md` is the transfer brief for Google Stitch or any other design AI: system prompt, layout grammar, component vocabulary, per-screen prompts, and the token JSON. Reference screenshots are in `design/stitch-refs/` (copies of `qa/` output, which is gitignored). Results come back by mapping onto `web/css/tokens.css`, never by pasting generated CSS.
